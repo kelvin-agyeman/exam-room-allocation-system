@@ -98,18 +98,17 @@ export const getAllExams = async (req, res) => {
 };
 
 export const createExam = async (req, res) => {
-  req.body.createdBy = req.user.userId;
-
   const courseCodeExists = await Exam.findOne({
     courseCode: req.body.courseCode,
-    createdBy: req.user.userId,
   });
 
   if (courseCodeExists) {
-    return res
-      .status(StatusCodes.BAD_REQUEST)
-      .json({ msg: "You have already posted an exam for this course." });
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      msg: `An exam with course code, ${req.body.courseCode}, already exists for program, ${courseCodeExists.program}, and level ${courseCodeExists.level}`,
+    });
   }
+
+  req.body.createdBy = req.user.userId;
 
   const exam = await Exam.create(req.body);
 
