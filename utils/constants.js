@@ -4,7 +4,6 @@ export const EXAM_STATUS = {
   UPCOMING: "upcoming",
   ONGOING: "ongoing",
   COMPLETED: "completed",
-  CANCELED: "canceled",
 };
 
 export const PROGRAMS = {

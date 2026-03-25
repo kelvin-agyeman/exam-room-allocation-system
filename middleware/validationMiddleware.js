@@ -168,12 +168,7 @@ export const validateUpdateStudentInput = withValidationErrors([
 ]);
 
 export const validateExamInput = withValidationErrors([
-  body("courseCode")
-    .trim()
-    .notEmpty()
-    .withMessage("Course code is required")
-    .isAlphanumeric()
-    .withMessage("Course code must contain only letters and numbers"),
+  body("courseCode").trim().notEmpty().withMessage("Course code is required"),
   body("courseTitle").trim().notEmpty().withMessage("Course title is required"),
   body("roomAllocations")
     .isArray({ min: 1 })
@@ -268,9 +263,7 @@ export const validateUpdateExamInput = withValidationErrors([
     .trim()
     .optional()
     .notEmpty()
-    .withMessage("Course code is required")
-    .isAlphanumeric()
-    .withMessage("Course code must contain only letters and numbers"),
+    .withMessage("Course code is required"),
   body("courseTitle")
     .optional()
     .trim()
