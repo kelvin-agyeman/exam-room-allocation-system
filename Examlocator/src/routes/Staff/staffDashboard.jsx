@@ -56,12 +56,9 @@ export function StaffdashboardPage() {
   const navigate = useNavigate();
   const search = useSearch({ from: "/staff/dashboard" });
 
-  const examStatusOptions = ["All Exams", ...Object.values(EXAM_STATUS)];
-
   const [selected, setSelected] = useState(search.examStatus || "All Exams");
   const [searchTerm, setSearchTerm] = useState(search.search || "");
   const [filteredExams, setFilteredExams] = useState(exams);
-  const [open, setOpen] = useState(false);
 
   const searchTimeout = useRef(null);
 
@@ -97,16 +94,7 @@ export function StaffdashboardPage() {
         to: "/staff/dashboard",
         search: (prev) => ({ ...prev, search: value }),
       });
-    }, 300);
-  };
-
-  const handleFilter = (status) => {
-    setSelected(status);
-    setOpen(false);
-    navigate({
-      to: "/staff/dashboard",
-      search: (prev) => ({ ...prev, examStatus: status }),
-    });
+    }, 3000);
   };
 
   const deleteExamMutation = useMutation({
