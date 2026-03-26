@@ -180,9 +180,19 @@ export const getAllPostedExams = async (req, res) => {
     return res.status(StatusCodes.OK).json({ msg: "No exams found" });
   }
 
+  const stats = {
+    upcoming: 0,
+    ongoing: 0,
+    completed: 0,
+  };
+
+  formattedExams.forEach((exam) => {
+    stats[exam.examStatus]++;
+  });
+
   return res
     .status(StatusCodes.OK)
-    .json({ numOfPapers, exams: formattedExams });
+    .json({ numOfPapers, stats, exams: formattedExams });
 };
 
 export const getSingleExam = async (req, res) => {

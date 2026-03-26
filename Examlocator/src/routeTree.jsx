@@ -19,7 +19,13 @@ import {
 } from "./routes/Student/dashboard";
 import { StudSignupPage } from "./routes/Student/signUp";
 
-import { StaffdashboardPage } from "./routes/Staff/adminDashboard";
+import {
+  StaffdashboardPage,
+  loader as staffDashboardLoader,
+} from "./routes/Staff/staffDashboard";
+import { StaffLoginPage } from "./routes/Staff/staffLogin";
+import { AssignNewExamPage } from "./routes/Staff/assignNewExam";
+import { EditExamPage } from "./routes/Staff/editExam";
 
 // ---------------------
 // ROOT ROUTE
@@ -49,22 +55,9 @@ const studRootRoute = new Route({
   component: StudRootLayout,
 });
 
-// Parent (/Staff)
-const staffRootRoute = new Route({
-  getParentRoute: () => rootRoute,
-  path: "/staff",
-  component: StaffRootLayout,
-});
-
 // "/student" → "/student/login"
 const studRedirectRoute = new Route({
   getParentRoute: () => studRootRoute,
-  path: "/",
-  component: () => <Navigate to="login" replace />,
-});
-// "/staff" → "/staff/login"
-const staffRedirectRoute = new Route({
-  getParentRoute: () => staffRootRoute,
   path: "/",
   component: () => <Navigate to="login" replace />,
 });
@@ -74,13 +67,6 @@ const studLoginRoute = new Route({
   getParentRoute: () => studRootRoute,
   path: "login",
   component: StudIndexPage,
-});
-
-// "/staff/staffDashboard"
-const staffdashboardRoute = new Route({
-  getParentRoute: () => staffRootRoute,
-  path: "staffdashboard",
-  component: StaffdashboardPage,
 });
 
 const studDashboardRoute = new Route({
@@ -100,6 +86,52 @@ const studSignupRoute = new Route({
   component: StudSignupPage,
 });
 
+// Parent (/Staff)
+const staffRootRoute = new Route({
+  getParentRoute: () => rootRoute,
+  path: "/staff",
+  component: StaffRootLayout,
+});
+
+// "/staff" → "/staff/login"
+const staffRedirectRoute = new Route({
+  getParentRoute: () => staffRootRoute,
+  path: "/",
+  component: () => <Navigate to="login" replace />,
+});
+
+const staffLoginRoute = new Route({
+  getParentRoute: () => staffRootRoute,
+  path: "login",
+  component: StaffLoginPage,
+});
+
+// "/staff/staffDashboard"
+const staffdashboardRoute = new Route({
+  getParentRoute: () => staffRootRoute,
+  path: "dashboard",
+  component: StaffdashboardPage,
+  loader: staffDashboardLoader,
+  validateSearch: (search) => ({
+    examStatus: search.examStatus ?? "",
+    search: search.search ?? "",
+  }),
+});
+
+// "/staff/assignNewExam"
+const assignNewExamRoute = new Route({
+  getParentRoute: () => staffRootRoute,
+  path: "assignNewExam",
+  component: AssignNewExamPage,
+});
+
+// "/staff/editExam"
+const editExamRoute = new Route({
+  getParentRoute: () => staffRootRoute,
+  path: "editExam/$examId",
+  component: EditExamPage,
+});
+
 // ----------------------
 // ROUTE TREE
 // ----------------------
@@ -111,7 +143,13 @@ export const routeTree = rootRoute.addChildren([
     studDashboardRoute,
     studSignupRoute,
   ]),
-  staffRootRoute.addChildren([staffRedirectRoute, staffdashboardRoute]),
+  staffRootRoute.addChildren([
+    staffRedirectRoute,
+    staffLoginRoute,
+    staffdashboardRoute,
+    assignNewExamRoute,
+    editExamRoute,
+  ]),
 ]);
 
 // ----------------------

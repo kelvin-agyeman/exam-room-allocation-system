@@ -1,13 +1,17 @@
-import { Outlet } from '@tanstack/react-router'
+import { Outlet, useRouterState } from "@tanstack/react-router";
+import Loading from "../../components/Loading";
 
 export const Route = {
-    component: StudRootLayout,
-}
+  component: StudRootLayout,
+};
 
 export function StudRootLayout() {
-    return (
-        <div className="stud-root-layout">
-            <Outlet />
-        </div>
-    )
+  const isPageLoading = useRouterState({
+    select: (state) => state.isLoading,
+  });
+  return (
+    <div className="stud-root-layout">
+      {isPageLoading ? <Loading /> : <Outlet />}
+    </div>
+  );
 }

@@ -230,10 +230,7 @@ export function StudDashboardPage() {
                       </div>
                     </div>
                     <div className="exam-card-right">
-                      <div
-                        className={`exam-status ${exam.examStatus}`}
-                        style={{ textTransform: "capitalize" }}
-                      >
+                      <div className={`exam-status ${exam.examStatus}`}>
                         {exam.examStatus}
                       </div>
                     </div>
