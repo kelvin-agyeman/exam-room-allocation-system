@@ -91,7 +91,7 @@ export function StudDashboardPage() {
         to: "/student/dashboard",
         search: (prev) => ({ ...prev, search: value }),
       });
-    }, 300); // 300ms debounce
+    }, 3000); // 3000ms debounce
   };
 
   // Handle filter dropdown selection
