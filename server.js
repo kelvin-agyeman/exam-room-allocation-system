@@ -29,13 +29,11 @@ import {
 // import mongoSanitize from "express-mongo-sanitize";
 
 //path imports
-import { dirname } from "path";
-import { fileURLToPath } from "url";
 import path from "path";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-
-app.use(express.static(path.resolve(__dirname, "./Examlocator/dist")));
+// Serve frontend build
+const buildPath = path.join(process.cwd(), "Examlocator", "dist");
+app.use(express.static(buildPath));
 
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
@@ -52,9 +50,17 @@ app.use("/api/v1/student", authenticateStudent, studentRouter);
 app.use("/api/v1/staff", authenticateStaff, staffRouter);
 app.use("/api/v1/admin", authenticateAdmin, adminRouter);
 
+// Serve frontend for all non-API routes
 app.use((req, res, next) => {
+  // Skip API routes
   if (req.path.startsWith("/api")) return next();
-  res.sendFile(path.resolve(__dirname, "./Examlocator/dist", "index.html"));
+
+  // Serve index.html
+  res.sendFile(path.resolve(process.cwd(), "Examlocator/dist/index.html"), (err) => {
+    if (err) {
+      next(err);
+    }
+  });
 });
 
 app.use(notFound);
