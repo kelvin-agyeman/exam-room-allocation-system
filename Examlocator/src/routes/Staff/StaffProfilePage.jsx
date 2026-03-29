@@ -9,12 +9,21 @@ export const loader = async () => {
       customFetch.get("/staff/current"),
       customFetch.get("/staff/exams"),
     ]);
+
     return {
-      staff: staffRes.data.staff,
-      numOfPapers: postedExamsRes.data.numOfPapers,
+      staff: staffRes?.data?.staff || null,
+      numOfPapers: postedExamsRes?.data?.numOfPapers || 0,
     };
   } catch (error) {
-    throw redirect({ to: "/staff/dashboard" });
+    // ❗ only redirect if truly unauthorized
+    if (error?.response?.status === 401) {
+      throw redirect({ to: "/staff/login" });
+    }
+
+    return {
+      staff: null,
+      numOfPapers: 0,
+    };
   }
 };
 
@@ -26,12 +35,19 @@ function StaffProfilePage() {
   });
 
   const handleLogout = async () => {
-    navigate({ to: "/staff/login" });
-    await customFetch.get("/auth/staff/logout");
-    toast.success("Logging out...");
+    try {
+      await customFetch.get("/auth/staff/logout");
+      toast.success("Logged out successfully");
+    } catch (error) {
+      toast.error("Logout failed");
+    } finally {
+      navigate({ to: "/staff/login" });
+    }
   };
 
+  // ✅ SAFE initials
   const getInitials = (name) => {
+    if (!name) return "NA";
     return name
       .split(" ")
       .map((n) => n[0])
@@ -39,7 +55,10 @@ function StaffProfilePage() {
       .toUpperCase();
   };
 
+  // ✅ SAFE role color
   const getRoleColor = (role) => {
+    if (!role) return "#6B7280";
+
     switch (role.toLowerCase()) {
       case "student":
         return "#2A6F68";
@@ -58,26 +77,30 @@ function StaffProfilePage() {
         {/* Header Section */}
         <div className="profile-header-section">
           <div className="staff-profile-cover"></div>
+
           <div className="profile-avatar-wrapper">
             <div
               className="profile-avatar"
-              style={{ backgroundColor: getRoleColor(staff.role) }}
+              style={{ backgroundColor: getRoleColor(staff?.role) }}
             >
               <span className="avatar-initials">
-                {getInitials(staff.fullName)}
+                {getInitials(staff?.fullName)}
               </span>
+
               <button className="avatar-camera-btn" title="Change Photo">
                 <Camera size={14} />
               </button>
             </div>
           </div>
+
           <div className="profile-header-info">
-            <h1 className="profile-name">{staff.fullName}</h1>
+            <h1 className="profile-name">{staff?.fullName || "No Name"}</h1>
+
             <span
               className="profile-role-badge"
-              style={{ backgroundColor: getRoleColor(staff.role) }}
+              style={{ backgroundColor: getRoleColor(staff?.role) }}
             >
-              {staff.role}
+              {staff?.role || "N/A"}
             </span>
           </div>
         </div>
@@ -104,7 +127,7 @@ function StaffProfilePage() {
                 </div>
                 <div className="field-content">
                   <label>Full Name</label>
-                  <p className="field-value">{staff.fullName}</p>
+                  <p className="field-value">{staff?.fullName || "N/A"}</p>
                 </div>
               </div>
 
@@ -114,7 +137,7 @@ function StaffProfilePage() {
                 </div>
                 <div className="field-content">
                   <label>Staff ID</label>
-                  <p className="field-value">{staff.staffID}</p>
+                  <p className="field-value">{staff?.staffID || "N/A"}</p>
                 </div>
               </div>
             </div>
@@ -125,7 +148,7 @@ function StaffProfilePage() {
             <h3>Quick Stats</h3>
             <div className="stats-grid">
               <div className="stat-box">
-                <span className="stat-number">{numOfPapers}</span>
+                <span className="stat-number">{numOfPapers || 0}</span>
                 <span className="stat-label">Total Exams Created</span>
               </div>
             </div>

@@ -6,6 +6,7 @@ export const Route = {
   component: AdminDashboardPage,
 };
 
+// Loader to fetch total students and staff
 export const loader = async () => {
   try {
     const [studentRes, staffRes] = await Promise.all([
@@ -14,8 +15,8 @@ export const loader = async () => {
     ]);
 
     return {
-      totalStudents: studentRes.data.totalStudents,
-      totalStaff: staffRes.data.totalStaff,
+      totalStudents: studentRes?.data?.totalStudents ?? 0,
+      totalStaff: staffRes?.data?.totalStaff ?? 0,
     };
   } catch (error) {
     throw redirect({ to: "/admin/login" });
@@ -27,6 +28,11 @@ export function AdminDashboardPage() {
     from: "/admin/dashboard",
   });
 
+  // Defensive check in case loader fails
+  if (totalStaff === undefined || totalStudents === undefined) {
+    return <div className="loading">Loading dashboard...</div>;
+  }
+
   return (
     <div className="admin-dashboard-page">
       {/* Header */}
@@ -37,8 +43,9 @@ export function AdminDashboardPage() {
           <p className="subtext">System overview and management center</p>
         </div>
       </div>
+
+      {/* Main Stats */}
       <div className="main-content">
-        {/* Stats Grid */}
         <div className="stats-grid">
           <div className="stat-card primary">
             <div className="stat-icon">

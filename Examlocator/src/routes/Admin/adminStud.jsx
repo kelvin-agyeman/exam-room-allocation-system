@@ -5,17 +5,19 @@ import { useMutation } from "@tanstack/react-query";
 import customFetch from "../../utils/customFetch";
 import { toast } from "react-toastify";
 
+// Route setup
 export const Route = {
   component: AdminStudPage,
 };
 
+// Loader to fetch students
 export const loader = async () => {
   try {
     const studentRes = await customFetch.get("/admin/all-students");
 
     return {
-      students: studentRes.data.students || [], // ✅ FIX
-      totalStudents: studentRes.data.totalStudents || 0,
+      students: studentRes?.data?.students || [],
+      totalStudents: studentRes?.data?.totalStudents || 0,
     };
   } catch (error) {
     throw redirect({ to: "/admin/dashboard" });
@@ -34,7 +36,6 @@ export function AdminStudPage() {
   });
 
   /* ================= MUTATIONS ================= */
-
   const deleteMutation = useMutation({
     mutationFn: async (studentId) => {
       const res = await customFetch.delete(`/admin/student/${studentId}`);
@@ -43,17 +44,19 @@ export function AdminStudPage() {
     onSuccess: () => {
       toast.success("Student deleted successfully");
       setIsDeleteModalOpen(false);
+      setDeletingStudent(null);
       navigate({ to: "/admin/students" });
     },
     onError: (error) => {
       const errorMessage =
-        error?.response?.data?.msg ?? error?.response?.data?.error?.[0];
+        error?.response?.data?.msg ??
+        error?.response?.data?.error?.[0] ??
+        "Failed to delete student";
       toast.error(errorMessage);
     },
   });
 
   /* ================= HANDLERS ================= */
-
   const handleDeleteConfirm = () => {
     if (!deletingStudent) return;
     deleteMutation.mutate(deletingStudent._id);
@@ -61,23 +64,22 @@ export function AdminStudPage() {
 
   const closeDeleteModal = () => {
     setIsDeleteModalOpen(false);
-    setDeletingStudent(null); // ✅ FIX
+    setDeletingStudent(null);
   };
 
   /* ================= SEARCH ================= */
-
-  const filteredStudents = (students || []).filter((member) => {
+  const filteredStudents = (students || []).filter((student) => {
     const query = searchQuery.toLowerCase();
-
     return (
-      member.firstName?.toLowerCase().includes(query) ||
-      member.lastName?.toLowerCase().includes(query) ||
-      String(member.indexNumber).toLowerCase().includes(query) // ✅ FIX
+      student.firstName?.toLowerCase().includes(query) ||
+      student.lastName?.toLowerCase().includes(query) ||
+      String(student.indexNumber || "")
+        .toLowerCase()
+        .includes(query)
     );
   });
 
   /* ================= UI ================= */
-
   return (
     <div className="admin-staff-page">
       {/* Header */}
@@ -161,21 +163,17 @@ export function AdminStudPage() {
                     <td>
                       <span className="staff-id">{student.indexNumber}</span>
                     </td>
-
                     <td>
                       <span className="student-name">{student.email}</span>
                     </td>
-
                     <td>
                       <span className="student-name">
                         {student.departmentCode}
                       </span>
                     </td>
-
                     <td>
                       <span className="student-name">{student.level}</span>
                     </td>
-
                     <td>
                       <span className="student-name">{student.program}</span>
                     </td>
@@ -186,7 +184,7 @@ export function AdminStudPage() {
                           className="action-btn delete-btn"
                           title="Delete"
                           onClick={() => {
-                            setDeletingStudent(student); // ✅ FIX
+                            setDeletingStudent(student);
                             setIsDeleteModalOpen(true);
                           }}
                         >

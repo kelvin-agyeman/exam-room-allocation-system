@@ -26,8 +26,8 @@ export const loader = async () => {
     ]);
 
     return {
-      admin: adminRes.data.admin,
-      editRequests: editRequestsRes.data.requests,
+      admin: adminRes?.data?.admin ?? null,
+      editRequests: editRequestsRes?.data?.requests ?? [],
     };
   } catch (error) {
     throw redirect({ to: "/admin/login" });
@@ -38,7 +38,6 @@ export function RequestApprovalPage() {
   const { editRequests } = useLoaderData({
     from: "/admin/requestApproval",
   });
-
   const navigate = useNavigate();
 
   const [requestsWithStudents, setRequestsWithStudents] = useState([]);
@@ -46,7 +45,7 @@ export function RequestApprovalPage() {
   const [filterStatus, setFilterStatus] = useState("all");
   const [expandedRequest, setExpandedRequest] = useState(null);
 
-  // ✅ Fetch students using requestedBy
+  // Fetch student info for each request
   useEffect(() => {
     const fetchStudents = async () => {
       try {
@@ -56,27 +55,22 @@ export function RequestApprovalPage() {
               const res = await customFetch.get(
                 `/admin/student/${req.requestedBy}`,
               );
-
-              return {
-                ...req,
-                student: res.data.student,
-              };
+              return { ...req, student: res?.data?.student ?? null };
             } catch {
               return { ...req, student: null };
             }
           }),
         );
-
         setRequestsWithStudents(updated);
-      } catch (error) {
-        console.error(error);
+      } catch (err) {
+        console.error(err);
       }
     };
 
     fetchStudents();
   }, [editRequests]);
 
-  // ✅ Stats (dynamic)
+  // Compute stats dynamically
   const stats = {
     total: requestsWithStudents.length,
     pending: requestsWithStudents.filter((r) => r.status === "pending").length,
@@ -86,22 +80,20 @@ export function RequestApprovalPage() {
       .length,
   };
 
-  // ✅ Filter logic
+  // Filter requests by search and status
   const filteredRequests = requestsWithStudents.filter((req) => {
     const matchesStatus = filterStatus === "all" || req.status === filterStatus;
-
     const student = req.student;
-
     const matchesSearch =
       !searchQuery ||
       student?.firstName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       student?.lastName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       student?.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       String(student?.indexNumber || "").includes(searchQuery);
-
     return matchesStatus && matchesSearch;
   });
 
+  // Badge colors for statuses
   const getStatusBadge = (status) => {
     const styles = {
       pending: { background: "#FEF3C7", color: "#D97706" },
@@ -117,11 +109,26 @@ export function RequestApprovalPage() {
 
   const formatDate = (date) => new Date(date).toLocaleDateString();
 
-  // ✅ Approve / Reject
   const handleApprove = async (id) => {
-    await customFetch.patch(`/admin/edit-requests/approve/${id}`);
-    navigate({ to: "/admin/requestApproval" });
-    toast.success("Request Approved");
+    try {
+      await customFetch.patch(`/admin/edit-requests/approve/${id}`);
+      toast.success("Request Approved");
+      navigate({ to: "/admin/requestApproval" }); // reload page
+    } catch (err) {
+      toast.error("Failed to approve request");
+      console.error(err);
+    }
+  };
+
+  const handleReject = async (id) => {
+    try {
+      await customFetch.patch(`/admin/edit-requests/reject/${id}`);
+      toast.success("Request Rejected");
+      navigate({ to: "/admin/requestApproval" }); // reload page
+    } catch (err) {
+      toast.error("Failed to reject request");
+      console.error(err);
+    }
   };
 
   return (
@@ -148,7 +155,6 @@ export function RequestApprovalPage() {
             <span className="stat-label">Total Requests</span>
           </div>
         </div>
-
         <div className="request-stat-card pending">
           <div className="stat-icon">
             <Clock size={20} />
@@ -158,7 +164,6 @@ export function RequestApprovalPage() {
             <span className="stat-label">Pending</span>
           </div>
         </div>
-
         <div className="request-stat-card approved">
           <div className="stat-icon">
             <CheckCircle size={20} />
@@ -168,7 +173,6 @@ export function RequestApprovalPage() {
             <span className="stat-label">Approved</span>
           </div>
         </div>
-
         <div className="request-stat-card rejected">
           <div className="stat-icon">
             <XCircle size={20} />
@@ -191,7 +195,6 @@ export function RequestApprovalPage() {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-
         <div className="request-filter-dropdown">
           <Filter size={18} />
           <select
@@ -206,7 +209,7 @@ export function RequestApprovalPage() {
         </div>
       </div>
 
-      {/* LIST */}
+      {/* REQUEST LIST */}
       <div className="requests-container">
         {filteredRequests.length === 0 ? (
           <div className="no-requests">
@@ -216,7 +219,6 @@ export function RequestApprovalPage() {
         ) : (
           filteredRequests.map((request) => {
             const student = request.student;
-
             return (
               <div
                 key={request._id}
@@ -230,20 +232,17 @@ export function RequestApprovalPage() {
                     <div className="request-avatar">
                       <User size={20} />
                     </div>
-
                     <div className="request-details">
                       <h3>
                         {student
                           ? `${student.firstName} ${student.lastName}`
                           : "Unknown Student"}
                       </h3>
-
                       <p className="request-meta">
                         Index Number: {student?.indexNumber} • {student?.email}
                       </p>
                     </div>
                   </div>
-
                   <div className="request-status-section">
                     <span
                       className="request-status-badge"
@@ -251,11 +250,9 @@ export function RequestApprovalPage() {
                     >
                       {request.status}
                     </span>
-
                     <span className="request-date">
                       {formatDate(request.createdAt)}
                     </span>
-
                     <button className="expand-btn">
                       {expandedRequest === request._id ? (
                         <ChevronUp size={20} />
@@ -272,31 +269,25 @@ export function RequestApprovalPage() {
                       <strong>Reason:</strong>
                       <p>{request.reason}</p>
                     </div>
-
                     <div className="changes-comparison">
                       <h4>Requested Changes:</h4>
-
                       <div className="changes-table">
                         <div className="changes-header">
                           <span>Field</span>
                           <span>New Value</span>
                         </div>
-
                         <div className="change-row">
                           <span>Index Number</span>
                           <span>{request.newIndexNumber}</span>
                         </div>
-
                         <div className="change-row">
                           <span>Department Code</span>
                           <span>{request.newDepartmentCode}</span>
                         </div>
-
                         <div className="change-row">
                           <span>Level</span>
                           <span>{request.newLevel}</span>
                         </div>
-
                         <div className="change-row">
                           <span>Program</span>
                           <span>{request.newProgram}</span>
@@ -310,13 +301,13 @@ export function RequestApprovalPage() {
                           className="approve-btn"
                           onClick={() => handleApprove(request._id)}
                         >
-                          <CheckCircle size={18} />
-                          Approve
+                          <CheckCircle size={18} /> Approve
                         </button>
-
-                        <button className="reject-btn">
-                          <XCircle size={18} />
-                          Reject
+                        <button
+                          className="reject-btn"
+                          onClick={() => handleReject(request._id)}
+                        >
+                          <XCircle size={18} /> Reject
                         </button>
                       </div>
                     )}

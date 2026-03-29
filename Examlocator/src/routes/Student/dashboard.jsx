@@ -29,11 +29,12 @@ export const loader = async () => {
       customFetch.get("/student/current"),
       customFetch.get("/exams"),
     ]);
+
     return {
-      student: studentRes.data.student,
-      exams: examsRes.data.exams,
-      stats: examsRes.data.stats,
-      numOfPapers: examsRes.data.numOfPapers,
+      student: studentRes?.data?.student || null,
+      exams: examsRes?.data?.exams || [],
+      stats: examsRes?.data?.stats || { upcoming: 0, ongoing: 0, completed: 0 },
+      numOfPapers: examsRes?.data?.numOfPapers || 0,
     };
   } catch (error) {
     throw redirect({ to: "/student/login" });
@@ -41,7 +42,7 @@ export const loader = async () => {
 };
 
 export function StudDashboardPage() {
-  const { student, exams, stats, numOfPapers } = useLoaderData({
+  const { student, exams, stats } = useLoaderData({
     from: "/student/dashboard",
   });
 
@@ -55,34 +56,32 @@ export function StudDashboardPage() {
   const [filteredExams, setFilteredExams] = useState(exams);
   const [open, setOpen] = useState(false);
 
-  // Ref to debounce search input
   const searchTimeout = useRef(null);
 
-  // Filter exams locally (optional, for instant feedback)
+  // Filter exams locally
   useEffect(() => {
+    if (!exams) return;
+
     let result = [...exams];
 
-    // Filter by examStatus
     if (selected !== "All Exams") {
       result = result.filter(
-        (exam) => exam.examStatus.toLowerCase() === selected.toLowerCase(),
+        (exam) => exam.examStatus?.toLowerCase() === selected.toLowerCase(),
       );
     }
 
-    // Filter by search term
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       result = result.filter(
         (exam) =>
-          exam.courseTitle.toLowerCase().includes(term) ||
-          exam.courseCode.toLowerCase().includes(term),
+          exam.courseTitle?.toLowerCase().includes(term) ||
+          exam.courseCode?.toLowerCase().includes(term),
       );
     }
 
     setFilteredExams(result);
   }, [exams, selected, searchTerm]);
 
-  // Handle search input change (live submit to server via URL search)
   const handleSearch = (e) => {
     const value = e.target.value;
     setSearchTerm(value);
@@ -93,10 +92,9 @@ export function StudDashboardPage() {
         to: "/student/dashboard",
         search: (prev) => ({ ...prev, search: value }),
       });
-    }, 3000); // 3000ms debounce
+    }, 300); // shorter debounce for responsiveness
   };
 
-  // Handle filter dropdown selection
   const handleFilter = (status) => {
     setSelected(status);
     setOpen(false);
@@ -108,7 +106,6 @@ export function StudDashboardPage() {
 
   const router = useRouter();
   const currentPath = router.state.location.pathname;
-
   const isAuthPage =
     currentPath === "/student/login" || currentPath === "/student/signup";
 
@@ -127,20 +124,25 @@ export function StudDashboardPage() {
             </Link>
           )}
         </div>
-        <h1>{`Welcome back, ${student.firstName} ${student.lastName}!`}</h1>
+        <h1>
+          {`Welcome back, ${
+            student?.firstName || "Student"
+          } ${student?.lastName || ""}!`}
+        </h1>
         <p className="headersubtext">
           Here's your exam schedule and locations.
         </p>
 
         <div className="userinfor">
           <div className="infos">
-            <Hash size={18} /> {student.indexNumber}
+            <Hash size={18} /> {student?.indexNumber || "N/A"}
           </div>
           <div className="infos">
-            <GraduationCap size={18} /> {student.program}
+            <GraduationCap size={18} /> {student?.program || "N/A"}
           </div>
           <div className="infos">
-            <User size={18} /> {`${student.firstName} ${student.lastName}`}
+            <User size={18} />{" "}
+            {`${student?.firstName || ""} ${student?.lastName || ""}`}
           </div>
         </div>
       </div>
@@ -148,17 +150,15 @@ export function StudDashboardPage() {
       {/* EXAM INFO */}
       <div className="examinfo">
         <div className="examinfoS">
-          <p className="toptxt1">{stats.upcoming}</p>
+          <p className="toptxt1">{stats?.upcoming || 0}</p>
           <p className="btntxt">Upcoming Exams</p>
         </div>
-
         <div className="examinfoS">
-          <p className="toptxt2">{stats.ongoing}</p>
+          <p className="toptxt2">{stats?.ongoing || 0}</p>
           <p className="btntxt">Ongoing Exams</p>
         </div>
-
         <div className="examinfoS">
-          <p className="toptxt3">{stats.completed}</p>
+          <p className="toptxt3">{stats?.completed || 0}</p>
           <p className="btntxt">Completed Exams</p>
         </div>
       </div>
@@ -169,7 +169,6 @@ export function StudDashboardPage() {
         <div className="filter">
           <div className="search">
             <Search size={18} className="search-icon" />
-
             <input
               type="text"
               placeholder="Search exams..."
@@ -180,14 +179,11 @@ export function StudDashboardPage() {
 
           <div className="exam-filter" onClick={() => setOpen(!open)}>
             <Filter size={16} className="icon" />
-
             <span className="selected">{selected}</span>
-
             <ChevronDown
               size={16}
               className={`chevron ${open ? "rotate" : ""}`}
             />
-
             {open && (
               <div className="dropdown">
                 {examStatusOptions.map((status) => (
@@ -196,8 +192,7 @@ export function StudDashboardPage() {
                     className={`dropdown-item ${selected === status ? "active" : ""}`}
                     onClick={(e) => {
                       e.stopPropagation();
-                      setSelected(status);
-                      setOpen(false);
+                      handleFilter(status);
                     }}
                     style={{ textTransform: "capitalize" }}
                   >
@@ -210,17 +205,19 @@ export function StudDashboardPage() {
         </div>
 
         {/* CONTENT */}
-        {exams.length > 0 ? (
+        {filteredExams && filteredExams.length > 0 ? (
           <div className="exam-cards-container">
             {filteredExams.map((exam) => {
               const formattedDate = dayjs(exam.startDate).format("MMM D, YYYY");
-
               return (
-                <div key={exam._id} className={`exam-card ${exam.examStatus}`}>
+                <div
+                  key={exam._id}
+                  className={`exam-card ${exam.examStatus || ""}`}
+                >
                   <div className="exam-card-content">
                     <div className="exam-card-left">
-                      <div className="course-code">{exam.courseCode}</div>
-                      <h3 className="exam-title">{exam.courseTitle}</h3>
+                      <div className="course-code">{exam.courseCode || ""}</div>
+                      <h3 className="exam-title">{exam.courseTitle || ""}</h3>
                       <div className="exam-details">
                         <div className="exam-detail-item">
                           <Calendar size={16} />
@@ -229,28 +226,28 @@ export function StudDashboardPage() {
                         <div className="exam-detail-item">
                           <Clock size={16} />
                           <span>
-                            {exam.startTime} - {exam.endTime}
+                            {exam.startTime || ""} - {exam.endTime || ""}
                           </span>
                         </div>
                         <div className="exam-location">
                           <div className="exam-detail-item">
                             <MapPin size={16} />
                             <span className="exam-location-text">
-                              {exam.roomAllocated}
+                              {exam.roomAllocated || ""}
                             </span>
                           </div>
                           <div className="exam-detail-item">
                             <Building2 size={16} />
                             <span className="exam-location-text">
-                              {exam.roomLocation}
+                              {exam.roomLocation || ""}
                             </span>
                           </div>
                         </div>
                       </div>
                     </div>
                     <div className="exam-card-right">
-                      <div className={`exam-status ${exam.examStatus}`}>
-                        {exam.examStatus}
+                      <div className={`exam-status ${exam.examStatus || ""}`}>
+                        {exam.examStatus || "N/A"}
                       </div>
                     </div>
                   </div>

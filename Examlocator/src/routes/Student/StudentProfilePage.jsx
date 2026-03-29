@@ -24,9 +24,10 @@ export const loader = async () => {
       customFetch.get("/student/current"),
       customFetch.get("/exams"),
     ]);
+
     return {
-      student: studentRes.data.student,
-      stats: examsRes.data.stats,
+      student: studentRes?.data?.student || null,
+      stats: examsRes?.data?.stats || { completed: 0, upcoming: 0 },
     };
   } catch (error) {
     throw redirect({ to: "/student/dashboard" });
@@ -35,12 +36,16 @@ export const loader = async () => {
 
 function StudentProfilePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-
   const navigate = useNavigate();
 
   const { student, stats } = useLoaderData({
     from: "/student/profile",
   });
+
+  // Defensive check if student data is missing
+  if (!student) {
+    return <div className="loading">Loading student data...</div>;
+  }
 
   const [formData, setFormData] = useState({
     newIndexNumber: student.indexNumber || "",
@@ -63,50 +68,46 @@ function StudentProfilePage() {
       const res = await customFetch.post("/student/request-edit", data);
       return res.data;
     },
-
     onSuccess: (data) => {
-      // console.log("Login success:", data);
       toast.success(data.msg);
-      navigate({ to: "/student/login", params: { studentId: student._id } });
+      setIsModalOpen(false);
     },
-
     onError: (error) => {
-      // console.error(error);
-      // alert("Invalid credentials");
       const errorMessage =
-        error?.response?.data?.msg ?? error?.response?.data?.error?.[0];
+        error?.response?.data?.msg ??
+        error?.response?.data?.error?.[0] ??
+        "Request failed";
       toast.error(errorMessage);
     },
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
     const data = {
       ...formData,
       newIndexNumber: Number(formData.newIndexNumber),
       newLevel: Number(formData.newLevel),
     };
-
     editRequestMutation.mutate(data);
   };
 
   const handleLogout = async () => {
-    navigate({ to: "/student/login" });
     await customFetch.get("/auth/logout");
     toast.success("Logging out...");
+    navigate({ to: "/student/login" });
   };
 
-  const getInitials = (name) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase();
-  };
+  const getInitials = (name) =>
+    name
+      ? name
+          .split(" ")
+          .map((n) => n[0])
+          .join("")
+          .toUpperCase()
+      : "";
 
   const getRoleColor = (role) => {
-    switch (role.toLowerCase()) {
+    switch (role?.toLowerCase()) {
       case "student":
         return "#2A6F68";
       case "staff":
@@ -155,7 +156,6 @@ function StudentProfilePage() {
           <div className="profile-info-card">
             <div className="profile-card-header">
               <h2>Personal Information</h2>
-
               <div className="profile-action-btns">
                 <button
                   className="profile-edit-btn"
@@ -257,7 +257,7 @@ function StudentProfilePage() {
           <form className="profile-modal" onSubmit={handleSubmit}>
             <div className="profile-modal-header">
               <h2>Send Edit Request</h2>
-              <button onClick={() => setIsModalOpen(false)}>
+              <button type="button" onClick={() => setIsModalOpen(false)}>
                 <X size={18} />
               </button>
             </div>
@@ -289,13 +289,11 @@ function StudentProfilePage() {
                   onChange={handleChange}
                 >
                   <option value="">Select level</option>
-                  {LEVELS.map((level) => {
-                    return (
-                      <option value={level} key={level}>
-                        {level}
-                      </option>
-                    );
-                  })}
+                  {LEVELS.map((level) => (
+                    <option value={level} key={level}>
+                      {level}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -307,13 +305,11 @@ function StudentProfilePage() {
                   onChange={handleChange}
                 >
                   <option value="">Select program</option>
-                  {Object.values(PROGRAMS).map((program) => {
-                    return (
-                      <option value={program} key={program}>
-                        {program}
-                      </option>
-                    );
-                  })}
+                  {Object.values(PROGRAMS).map((program) => (
+                    <option value={program} key={program}>
+                      {program}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -330,10 +326,11 @@ function StudentProfilePage() {
             </div>
 
             <div className="profile-modal-actions">
-              <button className="profile-save-btn">
+              <button type="submit" className="profile-save-btn">
                 <Check size={16} /> Send Request
               </button>
               <button
+                type="button"
                 className="profile-cancel-btn"
                 onClick={() => setIsModalOpen(false)}
               >

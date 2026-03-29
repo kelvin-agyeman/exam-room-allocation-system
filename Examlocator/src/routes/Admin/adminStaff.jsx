@@ -1,30 +1,22 @@
-import {
-  Users,
-  Search,
-  Plus,
-  Edit,
-  Trash2,
-  Mail,
-  Calendar,
-  Shield,
-  X,
-} from "lucide-react";
+import { Users, Search, Plus, Edit, Trash2, Shield, X } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, redirect, useLoaderData } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
 import customFetch from "../../utils/customFetch";
 import { toast } from "react-toastify";
 
+// Route setup
 export const Route = {
   component: AdminStaffPage,
 };
 
+// Loader to fetch staff data
 export const loader = async () => {
   try {
     const staffRes = await customFetch.get("/admin/all-staff");
     return {
-      staff: staffRes.data.staff,
-      totalStaff: staffRes.data.totalStaff,
+      staff: staffRes?.data?.staff || [],
+      totalStaff: staffRes?.data?.totalStaff || 0,
     };
   } catch (error) {
     throw redirect({ to: "/admin/dashboard" });
@@ -33,23 +25,18 @@ export const loader = async () => {
 
 export function AdminStaffPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const [deletingStaff, setDeletingStaff] = useState(null);
   const [editingStaff, setEditingStaff] = useState(null);
 
-  const [editForm, setEditForm] = useState({
-    fullName: "",
-    staffId: "",
-  });
+  const [editForm, setEditForm] = useState({ fullName: "", staffId: "" });
 
   const navigate = useNavigate();
 
-  const { staff, totalStaff } = useLoaderData({
-    from: "/admin/staff",
-  });
+  const { staff, totalStaff } = useLoaderData({ from: "/admin/staff" });
 
   /* ================= MUTATIONS ================= */
 
@@ -59,13 +46,15 @@ export function AdminStaffPage() {
       return res.data;
     },
     onSuccess: () => {
-      toast.success("Staff Registration successful");
+      toast.success("Staff registration successful");
       setIsAddModalOpen(false);
       navigate({ to: "/admin/staff" });
     },
     onError: (error) => {
       const errorMessage =
-        error?.response?.data?.msg ?? error?.response?.data?.error?.[0];
+        error?.response?.data?.msg ??
+        error?.response?.data?.error?.[0] ??
+        "Failed to register staff";
       toast.error(errorMessage);
     },
   });
@@ -78,11 +67,14 @@ export function AdminStaffPage() {
     onSuccess: () => {
       toast.success("Staff updated successfully");
       setIsEditModalOpen(false);
+      setEditingStaff(null);
       navigate({ to: "/admin/staff" });
     },
     onError: (error) => {
       const errorMessage =
-        error?.response?.data?.msg ?? error?.response?.data?.error?.[0];
+        error?.response?.data?.msg ??
+        error?.response?.data?.error?.[0] ??
+        "Failed to update staff";
       toast.error(errorMessage);
     },
   });
@@ -95,53 +87,45 @@ export function AdminStaffPage() {
     onSuccess: () => {
       toast.success("Staff deleted successfully");
       setIsDeleteModalOpen(false);
+      setDeletingStaff(null);
       navigate({ to: "/admin/staff" });
     },
     onError: (error) => {
       const errorMessage =
-        error?.response?.data?.msg ?? error?.response?.data?.error?.[0];
+        error?.response?.data?.msg ??
+        error?.response?.data?.error?.[0] ??
+        "Failed to delete staff";
       toast.error(errorMessage);
     },
   });
 
   /* ================= HANDLERS ================= */
 
-  const handleSubmit = (e) => {
+  const handleAddSubmit = (e) => {
     e.preventDefault();
-    const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData);
+    const data = Object.fromEntries(new FormData(e.target));
     signUpMutation.mutate(data);
   };
 
   const handleEditSubmit = (e) => {
     e.preventDefault();
-
+    if (!editingStaff) return;
     editMutation.mutate({
       staffId: editingStaff._id,
-      data: {
-        fullName: editForm.fullName,
-        staffID: editForm.staffId,
-      },
+      data: { fullName: editForm.fullName, staffID: editForm.staffId },
     });
   };
 
   const handleDeleteConfirm = () => {
+    if (!deletingStaff) return;
     deleteMutation.mutate(deletingStaff._id);
   };
 
-  const openAddModal = () => {
-    setIsAddModalOpen(true);
-  };
-
-  const closeAddModal = () => {
-    setIsAddModalOpen(false);
-  };
-
+  const closeAddModal = () => setIsAddModalOpen(false);
   const closeEditModal = () => {
     setIsEditModalOpen(false);
     setEditingStaff(null);
   };
-
   const closeDeleteModal = () => {
     setIsDeleteModalOpen(false);
     setDeletingStaff(null);
@@ -149,11 +133,11 @@ export function AdminStaffPage() {
 
   /* ================= SEARCH ================= */
 
-  const filteredStaff = staff.filter((member) => {
+  const filteredStaff = (staff || []).filter((member) => {
     const query = searchQuery.toLowerCase();
     return (
-      member.fullName.toLowerCase().includes(query) ||
-      member.staffID.toLowerCase().includes(query)
+      member.fullName?.toLowerCase().includes(query) ||
+      member.staffID?.toLowerCase().includes(query)
     );
   });
 
@@ -199,10 +183,11 @@ export function AdminStaffPage() {
               />
             </div>
           </div>
-
-          <button className="add-student-btn" onClick={openAddModal}>
-            <Plus size={18} />
-            Register Staff
+          <button
+            className="add-student-btn"
+            onClick={() => setIsAddModalOpen(true)}
+          >
+            <Plus size={18} /> Register Staff
           </button>
         </div>
 
@@ -222,7 +207,6 @@ export function AdminStaffPage() {
                   <th>Actions</th>
                 </tr>
               </thead>
-
               <tbody>
                 {filteredStaff.map((member) => (
                   <tr key={member._id}>
@@ -230,7 +214,7 @@ export function AdminStaffPage() {
                       <div className="student-info">
                         <div className="staff-avatar">
                           {member.fullName
-                            .split(" ")
+                            ?.split(" ")
                             .map((n) => n[0])
                             .join("")}
                         </div>
@@ -239,11 +223,9 @@ export function AdminStaffPage() {
                         </div>
                       </div>
                     </td>
-
                     <td>
                       <span className="staff-id">{member.staffID}</span>
                     </td>
-
                     <td>
                       <div className="action-buttons">
                         <button
@@ -260,7 +242,6 @@ export function AdminStaffPage() {
                         >
                           <Edit size={16} />
                         </button>
-
                         <button
                           className="action-btn delete-btn"
                           title="Delete"
@@ -291,14 +272,13 @@ export function AdminStaffPage() {
                 <X size={20} />
               </button>
             </div>
-
-            <form onSubmit={handleSubmit} className="modal-form">
+            <form onSubmit={handleAddSubmit} className="modal-form">
               <div className="modal-form-row">
                 <div className="modal-form-group">
                   <label>Full Name</label>
                   <input
                     name="fullName"
-                    placeholder="Enter your full name"
+                    placeholder="Enter full name"
                     required
                   />
                 </div>
@@ -307,18 +287,16 @@ export function AdminStaffPage() {
                   <input name="staffID" placeholder="e.g abc123" required />
                 </div>
               </div>
-
               <div className="modal-form-row">
                 <div className="modal-form-group">
                   <label>Password</label>
                   <input
                     name="password"
-                    placeholder="Enter your password"
+                    placeholder="Enter password"
                     required
                   />
                 </div>
               </div>
-
               <div className="modal-actions">
                 <button
                   type="button"
@@ -346,7 +324,6 @@ export function AdminStaffPage() {
                 <X size={20} />
               </button>
             </div>
-
             <form onSubmit={handleEditSubmit} className="modal-form">
               <div className="modal-form-row">
                 <div className="modal-form-group">
@@ -354,30 +331,22 @@ export function AdminStaffPage() {
                   <input
                     value={editForm.fullName}
                     onChange={(e) =>
-                      setEditForm({
-                        ...editForm,
-                        fullName: e.target.value,
-                      })
+                      setEditForm({ ...editForm, fullName: e.target.value })
                     }
                     required
                   />
                 </div>
-
                 <div className="modal-form-group">
                   <label>Staff ID</label>
                   <input
                     value={editForm.staffId}
                     onChange={(e) =>
-                      setEditForm({
-                        ...editForm,
-                        staffId: e.target.value,
-                      })
+                      setEditForm({ ...editForm, staffId: e.target.value })
                     }
                     required
                   />
                 </div>
               </div>
-
               <div className="modal-actions">
                 <button
                   type="button"
@@ -408,7 +377,6 @@ export function AdminStaffPage() {
                 <X size={20} />
               </button>
             </div>
-
             <div className="delete-modal-body">
               <p className="delete-message">
                 Are you sure you want to delete{" "}
@@ -416,7 +384,6 @@ export function AdminStaffPage() {
               </p>
               <p className="delete-warning">This action cannot be undone.</p>
             </div>
-
             <div className="modal-actions">
               <button
                 type="button"

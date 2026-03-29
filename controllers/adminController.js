@@ -17,10 +17,6 @@ export const getCurrentAdmin = async (req, res) => {
 export const getAllStaff = async (req, res) => {
   const staff = await Staff.find({});
 
-  if (!staff || staff.length === 0) {
-    return res.status(StatusCodes.NOT_FOUND).json({ msg: "No staff found" });
-  }
-
   const staffWithoutPassword = staff.map((member) => {
     return member.toJSON();
   });
@@ -35,10 +31,6 @@ export const getAllStaff = async (req, res) => {
 
 export const getAllStudents = async (req, res) => {
   const students = await Student.find({});
-
-  if (!students || students.length === 0) {
-    return res.status(StatusCodes.NOT_FOUND).json({ msg: "No students found" });
-  }
 
   const studentsWithoutPassword = students.map((student) => {
     return student.toJSON();
@@ -179,11 +171,6 @@ export const getAllEditDetailsRequests = async (req, res) => {
 
   const requests = await EditDetailsRequest.find(queryObject);
 
-  if (!requests || requests.length === 0) {
-    return res
-      .status(StatusCodes.NOT_FOUND)
-      .json({ msg: "No edit details requests found" });
-  }
 
   res.status(StatusCodes.OK).json({ totalRequests: requests.length, requests });
 };
