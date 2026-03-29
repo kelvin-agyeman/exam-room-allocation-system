@@ -17,6 +17,8 @@ import {
   useLoaderData,
   useSearch,
   useNavigate,
+  useRouter,
+  Link,
 } from "@tanstack/react-router";
 import dayjs from "dayjs";
 import { EXAM_STATUS } from "../../../../utils/constants";
@@ -104,10 +106,27 @@ export function StudDashboardPage() {
     });
   };
 
+  const router = useRouter();
+  const currentPath = router.state.location.pathname;
+
+  const isAuthPage =
+    currentPath === "/student/login" || currentPath === "/student/signup";
+
   return (
     <div className="stud-dashboard-page">
       {/* HEADER */}
       <div className="dashheader">
+        <div className="student-nav-brand">
+          {!isAuthPage && (
+            <Link
+              to="/student/profile"
+              className="student-profile-btn"
+              title="Profile"
+            >
+              <User size={20} />
+            </Link>
+          )}
+        </div>
         <h1>{`Welcome back, ${student.firstName} ${student.lastName}!`}</h1>
         <p className="headersubtext">
           Here's your exam schedule and locations.
@@ -240,7 +259,7 @@ export function StudDashboardPage() {
             })}
           </div>
         ) : (
-          <h1>No Exam to display...</h1>
+          <h1 className="main-empty">No Exam to display...</h1>
         )}
       </div>
     </div>

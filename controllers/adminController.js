@@ -9,7 +9,9 @@ export const getCurrentAdmin = async (req, res) => {
 
   const adminWithoutPassword = admin.toJSON();
 
-  res.status(StatusCodes.OK).json({ admin: adminWithoutPassword });
+  const adminRes = { ...adminWithoutPassword, role: "admin" };
+
+  res.status(StatusCodes.OK).json({ admin: adminRes });
 };
 
 export const getAllStaff = async (req, res) => {

@@ -1,5 +1,4 @@
 import { LogIn } from "lucide-react";
-import { Link } from "lucide-react";
 import { Link as RouterLink } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";

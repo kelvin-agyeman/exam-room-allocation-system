@@ -7,6 +7,7 @@ import {
   Clock,
   Edit2,
   Trash2,
+  User,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import customFetch from "../../utils/customFetch";
@@ -15,10 +16,11 @@ import {
   useLoaderData,
   useSearch,
   useNavigate,
+  useRouter,
+  Link,
 } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
 import dayjs from "dayjs";
-import { EXAM_STATUS } from "../../../../utils/constants";
 import { toast } from "react-toastify";
 
 export const Route = {
@@ -120,8 +122,24 @@ export function StaffdashboardPage() {
     deleteExamMutation.mutate(selectedExamId);
   };
 
+  const router = useRouter();
+  const currentPath = router.state.location.pathname;
+
+  const isAuthPage = currentPath === "/staff/login";
+
   return (
     <div className="staff-dashboard">
+      <div className="student-nav-brand">
+        {!isAuthPage && (
+          <Link
+            to="/staff/profile"
+            className="student-profile-btn"
+            title="Profile"
+          >
+            <User size={20} />
+          </Link>
+        )}
+      </div>
       <div className="staff-header">
         <Shield size={26} />
         <div className="headercontent">

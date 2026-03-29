@@ -6,5 +6,7 @@ export const getCurrentStaff = async (req, res) => {
 
   const staffWithoutPassword = staff.toJSON();
 
-  res.status(StatusCodes.OK).json({ staff: staffWithoutPassword });
+  const staffRes = { ...staffWithoutPassword, role: "staff" };
+
+  res.status(StatusCodes.OK).json({ staff: staffRes });
 };

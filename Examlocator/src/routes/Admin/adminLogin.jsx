@@ -5,22 +5,22 @@ import customFetch from "../../utils/customFetch";
 import { toast } from "react-toastify";
 
 export const Route = {
-  component: StaffLoginPage,
+  component: AdminLogin,
 };
 
-export function StaffLoginPage() {
+export function AdminLogin() {
   const navigate = useNavigate();
 
   const loginMutation = useMutation({
     mutationFn: async (data) => {
-      const res = await customFetch.post("/auth/staff/login", data);
+      const res = await customFetch.post("/auth/admin/login", data);
       return res.data;
     },
 
     onSuccess: (data) => {
       // console.log("Login success:", data);
       toast.success("Login successful");
-      navigate({ to: "/staff/dashboard" });
+      navigate({ to: "/admin/dashboard" });
     },
 
     onError: (error) => {
@@ -45,19 +45,19 @@ export function StaffLoginPage() {
     <div className="stud-index-page">
       <form className="form" onSubmit={handleSubmit}>
         <div className="header">
-          <h2>Staff Login</h2>
+          <h2>Admin Login</h2>
           <p className="subtext">
-            Enter your staff ID and password to access your dashboard
+            Enter your username and password to access your dashboard
           </p>
         </div>
         <div className="form-content">
           <div className="formcon">
-            <label htmlFor="Staff ID">Staff ID</label>
+            <label htmlFor="Username">Username</label>
             <input
               className="forminp"
               type="text"
-              id="staffID"
-              name="staffID"
+              id="username"
+              name="username"
               placeholder="e.g abc123"
             />
           </div>
@@ -82,10 +82,6 @@ export function StaffLoginPage() {
           >
             <LogIn /> {loginMutation.isPending ? " Logging in..." : " Log In"}
           </button>
-          <p>
-            Don't have an account?{" "}
-            <span style={{ color: "#2aa198" }}>Contact Admin</span>
-          </p>
         </div>
       </form>
     </div>

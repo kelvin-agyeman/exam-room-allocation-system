@@ -10,6 +10,7 @@ import {
 import { RootLayout } from "./routes/__root";
 import { StudRootLayout } from "./routes/Student/__root";
 import { StaffRootLayout } from "./routes/Staff/__root";
+import { AdminRootLayout } from "./routes/Admin/__root";
 
 // Pages
 import { StudIndexPage } from "./routes/Student/index";
@@ -18,6 +19,7 @@ import {
   loader as studentDashboardLoader,
 } from "./routes/Student/dashboard";
 import { StudSignupPage } from "./routes/Student/signUp";
+import { loader as studentProfilePageLoader } from "./routes/Student/StudentProfilePage";
 
 import {
   StaffdashboardPage,
@@ -26,7 +28,23 @@ import {
 import { StaffLoginPage } from "./routes/Staff/staffLogin";
 import { AssignNewExamPage } from "./routes/Staff/assignNewExam";
 import { EditExamPage } from "./routes/Staff/editExam";
+import { loader as staffProfilePageLoader } from "./routes/Staff/StaffProfilePage";
+import { loader as adminStudentLoader } from "./routes/Admin/adminStud";
 
+import { AdminDashboardPage } from "./routes/Admin/adminDashboard";
+import { AdminStudPage } from "./routes/Admin/adminStud";
+import {
+  AdminStaffPage,
+  loader as adminStaffLoader,
+} from "./routes/Admin/adminStaff";
+
+import { RequestApprovalPage } from "./routes/Admin/requestApproval";
+
+import { AdminLogin } from "./routes/Admin/adminLogin";
+import StudentProfilePage from "./routes/Student/StudentProfilePage";
+import StaffProfilePage from "./routes/Staff/StaffProfilePage";
+import { loader as editRequestsLoader } from "./routes/Admin/requestApproval";
+import { loader as adminDashboardLoader } from "./routes/Admin/adminDashboard";
 // ---------------------
 // ROOT ROUTE
 // ----------------------
@@ -86,6 +104,13 @@ const studSignupRoute = new Route({
   component: StudSignupPage,
 });
 
+const studProfileRoute = new Route({
+  getParentRoute: () => studRootRoute,
+  path: "profile",
+  component: StudentProfilePage,
+  loader: studentProfilePageLoader,
+});
+
 // Parent (/Staff)
 const staffRootRoute = new Route({
   getParentRoute: () => rootRoute,
@@ -118,6 +143,13 @@ const staffdashboardRoute = new Route({
   }),
 });
 
+const staffProfileRoute = new Route({
+  getParentRoute: () => staffRootRoute,
+  path: "profile",
+  component: StaffProfilePage,
+  loader: staffProfilePageLoader,
+});
+
 // "/staff/assignNewExam"
 const assignNewExamRoute = new Route({
   getParentRoute: () => staffRootRoute,
@@ -132,6 +164,60 @@ const editExamRoute = new Route({
   component: EditExamPage,
 });
 
+const adminRootRoute = new Route({
+  getParentRoute: () => rootRoute,
+  path: "/admin",
+  component: AdminRootLayout,
+});
+
+const adminRedirectRoute = new Route({
+  getParentRoute: () => adminRootRoute,
+  path: "/",
+  component: () => <Navigate to="login" replace />,
+});
+
+const adminLoginRoute = new Route({
+  getParentRoute: () => adminRootRoute,
+  path: "login",
+  component: AdminLogin,
+});
+
+// "/admin/adminDashboard"
+const adminDashboardRoute = new Route({
+  getParentRoute: () => adminRootRoute,
+  path: "dashboard",
+  component: AdminDashboardPage,
+  loader: adminDashboardLoader,
+});
+
+// "/admin/students"
+const adminStudRoute = new Route({
+  getParentRoute: () => adminRootRoute,
+  path: "students",
+  component: AdminStudPage,
+  loader: adminStudentLoader,
+});
+
+// "/admin/staff"
+const adminStaffRoute = new Route({
+  getParentRoute: () => adminRootRoute,
+  path: "staff",
+  component: AdminStaffPage,
+  loader: adminStaffLoader,
+});
+
+const requestApprovalRoute = new Route({
+  getParentRoute: () => adminRootRoute,
+  path: "requestApproval",
+  component: RequestApprovalPage,
+  loader: editRequestsLoader,
+});
+
+const adminProfileRoute = new Route({
+  getParentRoute: () => adminRootRoute,
+  path: "profile",
+});
+
 // ----------------------
 // ROUTE TREE
 // ----------------------
@@ -142,6 +228,7 @@ export const routeTree = rootRoute.addChildren([
     studLoginRoute,
     studDashboardRoute,
     studSignupRoute,
+    studProfileRoute,
   ]),
   staffRootRoute.addChildren([
     staffRedirectRoute,
@@ -149,6 +236,16 @@ export const routeTree = rootRoute.addChildren([
     staffdashboardRoute,
     assignNewExamRoute,
     editExamRoute,
+    staffProfileRoute,
+  ]),
+  adminRootRoute.addChildren([
+    adminRedirectRoute,
+    adminLoginRoute,
+    adminDashboardRoute,
+    adminStudRoute,
+    adminStaffRoute,
+    requestApprovalRoute,
+    adminProfileRoute,
   ]),
 ]);
 

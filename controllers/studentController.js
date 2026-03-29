@@ -7,7 +7,9 @@ export const getCurrentStudent = async (req, res) => {
 
   const studentWithoutPassword = student.toJSON();
 
-  res.status(StatusCodes.OK).json({ student: studentWithoutPassword });
+  const studentRes = { ...studentWithoutPassword, role: "student" };
+
+  res.status(StatusCodes.OK).json({ student: studentRes });
 };
 
 export const updateStudent = async (req, res) => {
@@ -54,7 +56,8 @@ export const updateStudent = async (req, res) => {
 };
 
 export const sendEditDetailsRequest = async (req, res) => {
-  const { newIndexNumber, newDepartmentCode, newLevel, newProgram, reason } = req.body;
+  const { newIndexNumber, newDepartmentCode, newLevel, newProgram, reason } =
+    req.body;
 
   const editDetailsRequest = await EditDetailsRequest.create({
     requestedBy: req.user.userId,
