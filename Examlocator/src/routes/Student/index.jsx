@@ -67,9 +67,9 @@ export function StudIndexPage() {
           <div className="formcon">
             <div className="passlabel">
               <label htmlFor="Password">Password</label>
-              <a href="#" className="forgotpass">
-                Forgot password?
-              </a>
+              <RouterLink to="/student/forgot-password" className="forgotpass">
+                Forgot Password?
+              </RouterLink>
             </div>
             <input
               className="forminp"

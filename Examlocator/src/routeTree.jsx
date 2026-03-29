@@ -45,6 +45,8 @@ import StudentProfilePage from "./routes/Student/StudentProfilePage";
 import StaffProfilePage from "./routes/Staff/StaffProfilePage";
 import { loader as editRequestsLoader } from "./routes/Admin/requestApproval";
 import { loader as adminDashboardLoader } from "./routes/Admin/adminDashboard";
+import { ForgotPasswordPage } from "./routes/Student/ForgotPassword";
+import { ResetPasswordPage } from "./routes/Student/ResetPassword";
 // ---------------------
 // ROOT ROUTE
 // ----------------------
@@ -109,6 +111,18 @@ const studProfileRoute = new Route({
   path: "profile",
   component: StudentProfilePage,
   loader: studentProfilePageLoader,
+});
+
+const forgotPasswordRoute = new Route({
+  getParentRoute: () => studRootRoute,
+  path: "forgot-password",
+  component: ForgotPasswordPage,
+});
+
+const resetPasswordRoute = new Route({
+  getParentRoute: () => studRootRoute,
+  path: "reset-password",
+  component: ResetPasswordPage,
 });
 
 // Parent (/Staff)
@@ -229,6 +243,8 @@ export const routeTree = rootRoute.addChildren([
     studDashboardRoute,
     studSignupRoute,
     studProfileRoute,
+    forgotPasswordRoute,
+    resetPasswordRoute,
   ]),
   staffRootRoute.addChildren([
     staffRedirectRoute,
