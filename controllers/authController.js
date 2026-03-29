@@ -197,7 +197,7 @@ export const forgotPassword = async (req, res) => {
   if (student) {
     const passwordToken = crypto.randomBytes(70).toString("hex");
     // send email
-    const origin = "http://localhost:5173";
+    const origin = process.env.CLIENT_URL || "http://localhost:5000";
 
     await sendResetPasswordEmail({
       name: student.firstName,
