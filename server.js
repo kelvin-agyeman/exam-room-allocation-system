@@ -28,6 +28,15 @@ import {
 // import helmet from "helmet";
 // import mongoSanitize from "express-mongo-sanitize";
 
+//path imports
+import { dirname } from "path";
+import { fileURLToPath } from "url";
+import path from "path";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+app.use(express.static(path.resolve(__dirname, "./Examlocator/dist")));
+
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
@@ -42,6 +51,11 @@ app.use("/api/v1/exams", examsRouter);
 app.use("/api/v1/student", authenticateStudent, studentRouter);
 app.use("/api/v1/staff", authenticateStaff, staffRouter);
 app.use("/api/v1/admin", authenticateAdmin, adminRouter);
+
+app.use((req, res, next) => {
+  if (req.path.startsWith("/api")) return next();
+  res.sendFile(path.resolve(__dirname, "./Examlocator/dist", "index.html"));
+});
 
 app.use(notFound);
 app.use(errorHandlerMiddleware);
