@@ -7,6 +7,7 @@ import {
   Clock,
   Edit2,
   Trash2,
+  User,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import customFetch from "../../utils/customFetch";
@@ -15,10 +16,11 @@ import {
   useLoaderData,
   useSearch,
   useNavigate,
+  useRouter,
+  Link,
 } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
 import dayjs from "dayjs";
-import { EXAM_STATUS } from "../../../../utils/constants";
 import { toast } from "react-toastify";
 
 export const Route = {
@@ -31,11 +33,16 @@ export const loader = async () => {
       customFetch.get("/staff/current"),
       customFetch.get("/staff/exams"),
     ]);
+
     return {
-      staff: staffRes.data.staff,
-      postedExams: postedExamsRes.data.exams,
-      stats: postedExamsRes.data.stats,
-      numOfPapers: postedExamsRes.data.numOfPapers,
+      staff: staffRes.data?.staff || {},
+      postedExams: postedExamsRes.data?.exams || [],
+      stats: postedExamsRes.data?.stats || {
+        upcoming: 0,
+        ongoing: 0,
+        completed: 0,
+      },
+      numOfPapers: postedExamsRes.data?.numOfPapers || 0,
     };
   } catch (error) {
     throw redirect({ to: "/staff/login" });
@@ -50,28 +57,23 @@ export function StaffdashboardPage() {
     from: "/staff/dashboard",
   });
 
-  // ✅ LOCAL STATE (SOURCE OF TRUTH)
-  const [exams, setExams] = useState(postedExams);
+  const [exams, setExams] = useState(postedExams || []);
 
   const navigate = useNavigate();
   const search = useSearch({ from: "/staff/dashboard" });
 
-  const examStatusOptions = ["All Exams", ...Object.values(EXAM_STATUS)];
-
   const [selected, setSelected] = useState(search.examStatus || "All Exams");
   const [searchTerm, setSearchTerm] = useState(search.search || "");
-  const [filteredExams, setFilteredExams] = useState(exams);
-  const [open, setOpen] = useState(false);
+  const [filteredExams, setFilteredExams] = useState(exams || []);
 
   const searchTimeout = useRef(null);
 
-  // ✅ FILTER USING LOCAL exams STATE
   useEffect(() => {
-    let result = [...exams];
+    let result = Array.isArray(exams) ? [...exams] : [];
 
     if (selected !== "All Exams") {
       result = result.filter(
-        (exam) => exam.examStatus.toLowerCase() === selected.toLowerCase(),
+        (exam) => exam?.examStatus?.toLowerCase() === selected.toLowerCase(),
       );
     }
 
@@ -79,8 +81,8 @@ export function StaffdashboardPage() {
       const term = searchTerm.toLowerCase();
       result = result.filter(
         (exam) =>
-          exam.courseTitle.toLowerCase().includes(term) ||
-          exam.courseCode.toLowerCase().includes(term),
+          exam?.courseTitle?.toLowerCase().includes(term) ||
+          exam?.courseCode?.toLowerCase().includes(term),
       );
     }
 
@@ -97,16 +99,7 @@ export function StaffdashboardPage() {
         to: "/staff/dashboard",
         search: (prev) => ({ ...prev, search: value }),
       });
-    }, 300);
-  };
-
-  const handleFilter = (status) => {
-    setSelected(status);
-    setOpen(false);
-    navigate({
-      to: "/staff/dashboard",
-      search: (prev) => ({ ...prev, examStatus: status }),
-    });
+    }, 3000);
   };
 
   const deleteExamMutation = useMutation({
@@ -116,10 +109,7 @@ export function StaffdashboardPage() {
     },
     onSuccess: () => {
       toast.success("Exam deleted successfully");
-
-      // ✅ REMOVE FROM UI IMMEDIATELY
       setExams((prev) => prev.filter((exam) => exam._id !== selectedExamId));
-
       setShowModal(false);
     },
     onError: (error) => {
@@ -129,11 +119,28 @@ export function StaffdashboardPage() {
   });
 
   const confirmDelete = () => {
+    if (!selectedExamId) return;
     deleteExamMutation.mutate(selectedExamId);
   };
 
+  const router = useRouter();
+  const currentPath = router.state.location.pathname;
+  const isAuthPage = currentPath === "/staff/login";
+
   return (
     <div className="staff-dashboard">
+      <div className="student-nav-brand">
+        {!isAuthPage && (
+          <Link
+            to="/staff/profile"
+            className="student-profile-btn"
+            title="Profile"
+          >
+            <User size={20} />
+          </Link>
+        )}
+      </div>
+
       <div className="staff-header">
         <Shield size={26} />
         <div className="headercontent">
@@ -155,6 +162,7 @@ export function StaffdashboardPage() {
               onChange={handleSearch}
             />
           </div>
+
           <button
             className="assign-exam-btn"
             onClick={() => navigate({ to: "/staff/assignNewExam" })}
@@ -164,22 +172,26 @@ export function StaffdashboardPage() {
           </button>
         </div>
 
+        {/* STATS SAFE */}
         <div className="exam-stats">
           <div className="stat-item">
             <MapPin size={16} />
             <span className="stat-value">{numOfPapers || 0}</span>
             <span className="stat-label">Total</span>
           </div>
+
           <div className="stat-item stat-upcoming">
             <Calendar size={16} />
             <span className="stat-value">{stats?.upcoming || 0}</span>
             <span className="stat-label">Upcoming</span>
           </div>
+
           <div className="stat-item stat-ongoing">
             <Clock size={16} />
             <span className="stat-value">{stats?.ongoing || 0}</span>
             <span className="stat-label">Ongoing</span>
           </div>
+
           <div className="stat-item stat-completed">
             <Calendar size={16} />
             <span className="stat-value">{stats?.completed || 0}</span>
@@ -198,6 +210,7 @@ export function StaffdashboardPage() {
                 <th>Actions</th>
               </tr>
             </thead>
+
             <tbody>
               {filteredExams.length === 0 ? (
                 <tr>
@@ -282,6 +295,7 @@ export function StaffdashboardPage() {
         </div>
       </div>
 
+      {/* DELETE MODAL */}
       {showModal && (
         <div className="modal-overlay">
           <div className="modal modal-content">
