@@ -424,9 +424,13 @@ export function EditExamPage() {
             <button type="button" className="cancel-btn" onClick={handleBack}>
               Cancel
             </button>
-            <button type="submit" className="submit-btn">
+            <button
+              type="submit"
+              className="submit-btn"
+              disabled={updateExamMutation.isPending}
+            >
               <Save size={16} />
-              Save Changes
+              {updateExamMutation.isPending ? "Saving..." : "Save Changes"}
             </button>
           </div>
         </form>
