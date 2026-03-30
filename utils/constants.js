@@ -102,14 +102,16 @@ export const PROGRAMS = {
 };
 
 export const COMPUTER_LABS = {
-  MAIN_LIBRARY: "Prempeh II Library / Main library",
-  PHARMACY_BUILDING: "Pharmacy Building / Pharm Lab",
-  COLLEGE_OF_SCIENCE: "College of Science / CoS",
-  CASELY_HAYFORD: "Casely Hayford / IDL",
-  SCHOOL_OF_MEDICINE: "School of Medicine and Dentistry / SMS",
-  E_LEARNING_CENTRE: "KNUST E-Learning Centre / E-VBAB / CCB",
-  LIBRARY_MALL: "KNUST Library Mall / Lib Mall",
-  PETROLEUM_BUILDING: "Petroleum Building Lab (PB Lab)",
+  MAIN_LIBRARY: "MAIN LIBRARY",
+  PHARMACY_BUILDING: "PHARM LAB",
+  COS_FF12: "COS FF-12",
+  COS_SF26: "COS SF-26",
+  COS_SF14: "COS SF-14",
+  IDL_COMP_LAB: "IDL COMP LAB",
+  SCHOOL_OF_MEDICINE: "SMS",
+  E_LEARNING_CENTRE: "E-VBAB",
+  LIBRARY_MALL: "KNUST LIBRARY MALL",
+  PETROLEUM_BUILDING: "PB-SIM LAB",
 };
 
 export const COLLEGE_OF_SCIENCE_ROOMS = {
