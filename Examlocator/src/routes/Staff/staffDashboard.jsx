@@ -199,61 +199,84 @@ export function StaffdashboardPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredExams.map((exam) => {
-                const formattedDate = dayjs(exam.startDate).format(
-                  "MMM D, YYYY",
-                );
+              {filteredExams.length === 0 ? (
+                <tr>
+                  <td colSpan="5" style={{ textAlign: "center" }}>
+                    No exams available
+                  </td>
+                </tr>
+              ) : (
+                filteredExams.map((exam) => {
+                  const formattedDate = exam?.startDate
+                    ? dayjs(exam.startDate).format("MMM D, YYYY")
+                    : "N/A";
 
-                return (
-                  <tr key={exam._id}>
-                    <td>
-                      <div className="course-info">
-                        <span className="course-codes">{exam.courseCode}</span>
-                        <span className="course-name">{exam.courseTitle}</span>
-                      </div>
-                    </td>
-                    <td>
-                      <div className="datetime-info">
-                        <span className="exam-date">{formattedDate}</span>
-                        <span className="exam-time">{`${exam?.startTime} - ${exam?.endTime}`}</span>
-                      </div>
-                    </td>
-                    <td>{exam?.roomAllocations[0].roomLocation}</td>
-                    <td>
-                      <span
-                        className={`status-badge status-${exam?.examStatus}`}
-                        style={{ textTransform: "uppercase" }}
-                      >
-                        {exam?.examStatus}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="action-buttons">
-                        <button
-                          className="action-btn edit-btn"
-                          onClick={() =>
-                            navigate({
-                              to: "/staff/editExam/$examId",
-                              params: { examId: exam?._id },
-                            })
-                          }
+                  return (
+                    <tr key={exam._id}>
+                      <td>
+                        <div className="course-info">
+                          <span className="course-codes">
+                            {exam?.courseCode || "N/A"}
+                          </span>
+                          <span className="course-name">
+                            {exam?.courseTitle || "N/A"}
+                          </span>
+                        </div>
+                      </td>
+
+                      <td>
+                        <div className="datetime-info">
+                          <span className="exam-date">{formattedDate}</span>
+                          <span className="exam-time">
+                            {exam?.startTime && exam?.endTime
+                              ? `${exam.startTime} - ${exam.endTime}`
+                              : "N/A"}
+                          </span>
+                        </div>
+                      </td>
+
+                      <td>
+                        {exam?.roomAllocations?.[0]?.roomLocation || "N/A"}
+                      </td>
+
+                      <td>
+                        <span
+                          className={`status-badge status-${exam?.examStatus}`}
+                          style={{ textTransform: "uppercase" }}
                         >
-                          <Edit2 size={16} />
-                        </button>
-                        <button
-                          className="action-btn delete-btn"
-                          onClick={() => {
-                            setSelectedExamId(exam?._id);
-                            setShowModal(true);
-                          }}
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
+                          {exam?.examStatus || "N/A"}
+                        </span>
+                      </td>
+
+                      <td>
+                        <div className="action-buttons">
+                          <button
+                            className="action-btn edit-btn"
+                            onClick={() =>
+                              navigate({
+                                to: "/staff/editExam/$examId",
+                                params: { examId: exam._id },
+                              })
+                            }
+                          >
+                            <Edit2 size={16} />
+                          </button>
+
+                          <button
+                            className="action-btn delete-btn"
+                            onClick={() => {
+                              setSelectedExamId(exam._id);
+                              setShowModal(true);
+                            }}
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>

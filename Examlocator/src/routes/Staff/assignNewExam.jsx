@@ -15,6 +15,7 @@ export function AssignNewExamPage() {
 
   const examType = ["written", "computer-based"];
 
+  // ✅ ADD THIS STATE
   const [roomAllocations, setRoomAllocations] = useState([
     {
       id: 1,
@@ -30,10 +31,12 @@ export function AssignNewExamPage() {
       const res = await customFetch.post("/staff/exams", data);
       return res.data;
     },
+
     onSuccess: () => {
       toast.success("Exam posted successfully");
       navigate({ to: "/staff/dashboard" });
     },
+
     onError: (error) => {
       const errorMessage =
         error?.response?.data?.msg ?? error?.response?.data?.error?.[0];
@@ -41,6 +44,7 @@ export function AssignNewExamPage() {
     },
   });
 
+  // ✅ HANDLE ROOM INPUT CHANGES
   const handleRoomAllocationChange = (id, field, value) => {
     setRoomAllocations((prev) =>
       prev.map((row) => (row.id === id ? { ...row, [field]: value } : row)),
@@ -53,37 +57,16 @@ export function AssignNewExamPage() {
     const formData = new FormData(e.target);
     const data = Object.fromEntries(formData);
 
-    // ✅ Basic validation
-    if (!data.courseCode || !data.courseTitle) {
-      toast.error("Course details are required");
-      return;
-    }
-
-    // ✅ Clean & validate room allocations
-    const validRoomAllocations = roomAllocations
-      .filter(
-        (row) =>
-          row.startIndexNumber &&
-          row.endIndexNumber &&
-          row.roomAllocated &&
-          row.roomLocation,
-      )
-      .map((row) => ({
+    // ✅ BUILD CORRECT PAYLOAD
+    const payload = {
+      ...data,
+      level: Number(data.level),
+      roomAllocations: roomAllocations.map((row) => ({
         startIndexNumber: Number(row.startIndexNumber),
         endIndexNumber: Number(row.endIndexNumber),
         roomAllocated: row.roomAllocated,
         roomLocation: row.roomLocation,
-      }));
-
-    if (validRoomAllocations.length === 0) {
-      toast.error("Please fill at least one valid room allocation");
-      return;
-    }
-
-    const payload = {
-      ...data,
-      level: data.level ? Number(data.level) : null,
-      roomAllocations: validRoomAllocations,
+      })),
     };
 
     createExamMutation.mutate(payload);
@@ -119,6 +102,7 @@ export function AssignNewExamPage() {
 
   return (
     <div className="assign-exam-page">
+      {/* Header */}
       <div className="assign-exam-header">
         <button className="back-btn" onClick={handleBack}>
           <ArrowLeft size={20} />
@@ -135,6 +119,7 @@ export function AssignNewExamPage() {
         </div>
       </div>
 
+      {/* Form */}
       <div className="assign-exam-form-container">
         <form className="assign-exam-form" onSubmit={handleSubmit}>
           <div className="form-section">
@@ -198,22 +183,26 @@ export function AssignNewExamPage() {
                 <label htmlFor="program">Program</label>
                 <select id="program" name="program" required>
                   <option value="">Select Program</option>
-                  {Object.values(PROGRAMS).map((program) => (
-                    <option key={program} value={program}>
-                      {program}
-                    </option>
-                  ))}
+                  {Object.values(PROGRAMS).map((program) => {
+                    return (
+                      <option value={program} key={program}>
+                        {program}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
               <div className="form-group">
                 <label htmlFor="level">Level</label>
                 <select id="level" name="level" required>
                   <option value="">Select Level</option>
-                  {LEVELS.map((level) => (
-                    <option key={level} value={level}>
-                      {level}
-                    </option>
-                  ))}
+                  {LEVELS.map((level) => {
+                    return (
+                      <option value={level} key={level}>
+                        {level}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
             </div>
@@ -226,16 +215,23 @@ export function AssignNewExamPage() {
                 <label htmlFor="examType">Exam Type</label>
                 <select id="examType" name="examType" required>
                   <option value="">Select Exam Type</option>
-                  {examType.map((item) => (
-                    <option key={item} value={item}>
-                      {item}
-                    </option>
-                  ))}
+                  {examType.map((item) => {
+                    return (
+                      <option
+                        value={item}
+                        key={item}
+                        style={{ textTransform: "capitalize" }}
+                      >
+                        {item}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
             </div>
           </div>
 
+          {/* Room Allocations */}
           <div className="form-section">
             <h2>Room Allocations</h2>
             <div className="room-allocations-table">
@@ -254,7 +250,7 @@ export function AssignNewExamPage() {
                     <tr key={row.id}>
                       <td>
                         <input
-                          type="number"
+                          type="text"
                           value={row.startIndexNumber}
                           onChange={(e) =>
                             handleRoomAllocationChange(
@@ -263,12 +259,13 @@ export function AssignNewExamPage() {
                               e.target.value,
                             )
                           }
+                          placeholder="e.g., 1000000"
                           className="table-input"
                         />
                       </td>
                       <td>
                         <input
-                          type="number"
+                          type="text"
                           value={row.endIndexNumber}
                           onChange={(e) =>
                             handleRoomAllocationChange(
@@ -277,6 +274,7 @@ export function AssignNewExamPage() {
                               e.target.value,
                             )
                           }
+                          placeholder="e.g., 2000000"
                           className="table-input"
                         />
                       </td>
@@ -291,6 +289,7 @@ export function AssignNewExamPage() {
                               e.target.value,
                             )
                           }
+                          placeholder="e.g., FF-1"
                           className="table-input"
                         />
                       </td>
@@ -305,6 +304,7 @@ export function AssignNewExamPage() {
                               e.target.value,
                             )
                           }
+                          placeholder="e.g., Main Building"
                           className="table-input"
                         />
                       </td>
@@ -321,10 +321,7 @@ export function AssignNewExamPage() {
                             type="button"
                             className="table-action-btn delete-btn"
                             onClick={() => removeRoomAllocation(row.id)}
-                            disabled={
-                              roomAllocations.length === 1 ||
-                              createExamMutation.isPending
-                            }
+                            disabled={roomAllocations.length === 1}
                           >
                             <Trash2 size={16} />
                           </button>
@@ -341,12 +338,8 @@ export function AssignNewExamPage() {
             <button type="button" className="cancel-btn" onClick={handleBack}>
               Cancel
             </button>
-            <button
-              type="submit"
-              className="submit-btn"
-              disabled={createExamMutation.isPending}
-            >
-              {createExamMutation.isPending ? "Submitting..." : "Assign Exam"}
+            <button type="submit" className="submit-btn">
+              Assign Exam
             </button>
           </div>
         </form>
