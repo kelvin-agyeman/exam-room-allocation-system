@@ -104,17 +104,38 @@ export const createExam = async (req, res) => {
 
   if (courseCodeExists) {
     return res.status(StatusCodes.BAD_REQUEST).json({
-      msg: `An exam with course code, ${req.body.courseCode}, already exists for program, ${courseCodeExists.program}, and level ${courseCodeExists.level}`,
+      msg: `An exam with course code ${req.body.courseCode} already exists for program ${courseCodeExists.program} and level ${courseCodeExists.level}`,
     });
   }
 
-  req.body.createdBy = req.user.userId;
+  const now = dayjs();
 
-  const exam = await Exam.create(req.body);
+  const examDate = dayjs(req.body.startDate).format("YYYY-MM-DD");
+  const examStart = dayjs(`${examDate} ${req.body.startTime}`);
+  const examEnd = dayjs(`${examDate} ${req.body.endTime}`);
 
-  res
-    .status(StatusCodes.CREATED)
-    .json({ msg: "Exam posted successfully", exam });
+  let computedStatus = "upcoming";
+
+  if (now.isBefore(examStart)) {
+    computedStatus = "upcoming";
+  } else if (now.isBefore(examEnd)) {
+    computedStatus = "ongoing";
+  } else {
+    computedStatus = "completed";
+  }
+
+  const examData = {
+    ...req.body,
+    examStatus: computedStatus,
+    createdBy: req.user.userId,
+  };
+
+  const exam = await Exam.create(examData);
+
+  res.status(StatusCodes.CREATED).json({
+    msg: "Exam posted successfully",
+    exam,
+  });
 };
 
 export const getAllPostedExams = async (req, res) => {

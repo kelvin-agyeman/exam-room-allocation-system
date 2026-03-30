@@ -67,7 +67,6 @@ const ExamSchema = new mongoose.Schema(
     examStatus: {
       type: String,
       enum: Object.values(EXAM_STATUS),
-      default: EXAM_STATUS.UPCOMING,
     },
 
     createdBy: {
