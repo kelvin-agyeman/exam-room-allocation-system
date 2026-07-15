@@ -14,9 +14,10 @@ import {
 } from "../controllers/adminController.js";
 const router = Router();
 import {
-  validateUpdateStaffInput,
   validateIdParam,
+  validate,
 } from "../middleware/validationMiddleware.js";
+import { updateStaffSchema } from "../validators/adminValidator.js";
 
 router.route("/current").get(getCurrentAdmin);
 router.route("/all-staff").get(getAllStaff);
@@ -29,7 +30,7 @@ router
 router
   .route("/staff/:id")
   .get(validateIdParam, getSingleStaff)
-  .patch(validateIdParam, validateUpdateStaffInput, updateStaff)
+  .patch(validateIdParam, validate(updateStaffSchema), updateStaff)
   .delete(validateIdParam, deleteStaff);
 router
   .route("/student/:id")

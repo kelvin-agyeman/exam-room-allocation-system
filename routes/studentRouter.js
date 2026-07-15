@@ -5,17 +5,18 @@ import {
   sendEditDetailsRequest,
 } from "../controllers/studentController.js";
 const router = Router();
+import { validate } from "../middleware/validationMiddleware.js";
 import {
-  validateEditStudentDetailsInput,
-  validateUpdateStudentInput,
-} from "../middleware/validationMiddleware.js";
+  editStudentDetailsSchema,
+  updateStudentSchema,
+} from "../validators/studentValidator.js";
 
 router.route("/current").get(getCurrentStudent);
 router
   .route("/update-student")
-  .patch(validateUpdateStudentInput, updateStudent);
+  .patch(validate(updateStudentSchema), updateStudent);
 router
   .route("/request-edit")
-  .post(validateEditStudentDetailsInput, sendEditDetailsRequest);
+  .post(validate(editStudentDetailsSchema), sendEditDetailsRequest);
 
 export default router;

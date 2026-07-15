@@ -1,12 +1,11 @@
-import Staff from "../models/staffModel.js";
-import { StatusCodes } from "http-status-codes";
+import { getCurrentStaffService } from "../services/staff/staffService.js";
 
 export const getCurrentStaff = async (req, res) => {
-  const staff = await Staff.findOne({ _id: req.user.userId });
+  const result = await getCurrentStaffService(req.user.userId);
 
-  const staffWithoutPassword = staff.toJSON();
+  if (result.error) {
+    return res.status(result.status).json({ msg: result.msg });
+  }
 
-  const staffRes = { ...staffWithoutPassword, role: "staff" };
-
-  res.status(StatusCodes.OK).json({ staff: staffRes });
+  res.status(result.status).json(result.data);
 };

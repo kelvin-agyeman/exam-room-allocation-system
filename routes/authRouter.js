@@ -12,13 +12,14 @@ import {
   resetPassword,
 } from "../controllers/authController.js";
 import rateLimiter from "express-rate-limit";
+import { validate } from "../middleware/validationMiddleware.js";
 import {
-  validateRegisterStudentInput,
-  validateRegisterStaffInput,
-  validateLoginStudentInput,
-  validateLoginStaffInput,
-  validateRegisterLoginAdminInput,
-} from "../middleware/validationMiddleware.js";
+  registerStudentSchema,
+  registerStaffSchema,
+  loginStudentSchema,
+  loginStaffSchema,
+  registerLoginAdminSchema,
+} from "../validators/authValidator.js";
 import { authenticateAdmin } from "../middleware/authMiddleware.js";
 
 const apiLimiter = rateLimiter({
@@ -39,22 +40,22 @@ const forgotPasswordAPILimiter = rateLimiter({
 
 router
   .route("/register")
-  .post(apiLimiter, validateRegisterStudentInput, registerStudent);
+  .post(apiLimiter, validate(registerStudentSchema), registerStudent);
 router
   .route("/staff/register")
-  .post(authenticateAdmin, validateRegisterStaffInput, registerStaff);
+  .post(authenticateAdmin, validate(registerStaffSchema), registerStaff);
 router
   .route("/admin/register")
-  .post(apiLimiter, validateRegisterLoginAdminInput, registerAdmin);
+  .post(apiLimiter, validate(registerLoginAdminSchema), registerAdmin);
 router
   .route("/login")
-  .post(apiLimiter, validateLoginStudentInput, studentLogin);
+  .post(apiLimiter, validate(loginStudentSchema), studentLogin);
 router
   .route("/staff/login")
-  .post(apiLimiter, validateLoginStaffInput, staffLogin);
+  .post(apiLimiter, validate(loginStaffSchema), staffLogin);
 router
   .route("/admin/login")
-  .post(apiLimiter, validateRegisterLoginAdminInput, adminLogin);
+  .post(apiLimiter, validate(registerLoginAdminSchema), adminLogin);
 router.route("/logout").get(logout);
 router.route("/staff/logout").get(logout);
 router.route("/admin/logout").get(logout);

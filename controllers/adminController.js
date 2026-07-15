@@ -1,190 +1,122 @@
-import Admin from "../models/adminModel.js";
-import Staff from "../models/staffModel.js";
-import Student from "../models/studentModel.js";
-import EditDetailsRequest from "../models/editDetailsRequestModel.js";
-import { StatusCodes } from "http-status-codes";
+import {
+  getCurrentAdminService,
+  getAllStaffService,
+  getAllStudentsService,
+  updateStaffService,
+  deleteStaffService,
+  deleteStudentService,
+  getSingleStudentService,
+  getSingleStaffService,
+  approveEditDetailsRequestService,
+  getAllEditDetailsRequestsService,
+  getSingleEditRequestService,
+} from "../services/admin/adminService.js";
 
 export const getCurrentAdmin = async (req, res) => {
-  const admin = await Admin.findOne({ _id: req.user.userId });
+  const result = await getCurrentAdminService(req.user.userId);
 
-  const adminWithoutPassword = admin.toJSON();
-
-  const adminRes = { ...adminWithoutPassword, role: "admin" };
-
-  res.status(StatusCodes.OK).json({ admin: adminRes });
+  if (result.error) {
+    return res.status(result.status).json({ msg: result.msg });
+  }
+  return res.status(result.status).json(result.data);
 };
 
 export const getAllStaff = async (req, res) => {
-  const staff = await Staff.find({});
+  const result = await getAllStaffService();
 
-  const staffWithoutPassword = staff.map((member) => {
-    return member.toJSON();
-  });
-
-  const totalStaff = await Staff.countDocuments();
-
-  res.status(StatusCodes.OK).json({
-    totalStaff,
-    staff: staffWithoutPassword,
-  });
+  if (result.error) {
+    return res.status(result.status).json({ msg: result.msg });
+  }
+  return res.status(result.status).json(result.data);
 };
 
 export const getAllStudents = async (req, res) => {
-  const students = await Student.find({});
+  const result = await getAllStudentsService();
 
-  const studentsWithoutPassword = students.map((student) => {
-    return student.toJSON();
-  });
-
-  const totalStudents = await Student.countDocuments();
-
-  res
-    .status(StatusCodes.OK)
-    .json({ totalStudents, students: studentsWithoutPassword });
+  if (result.error) {
+    return res.status(result.status).json({ msg: result.msg });
+  }
+  return res.status(result.status).json(result.data);
 };
 
 export const updateStaff = async (req, res) => {
-  const { id } = req.params;
-  const { staffID, password, fullName } = req.body;
+  const result = await updateStaffService(req.params.id, req.body);
 
-  const staff = await Staff.findById(id);
-  if (!staff) {
-    return res.status(StatusCodes.NOT_FOUND).json({ msg: "Staff not found" });
+  if (result.error) {
+    return res.status(result.status).json({ msg: result.msg });
   }
-
-  if (staffID) staff.staffID = staffID;
-  if (password) staff.password = password; //implement reset password instead of direct update
-  if (fullName) staff.fullName = fullName;
-
-  await staff.save();
-
-  res.status(StatusCodes.OK).json({
-    msg: "Staff updated successfully",
-    staff,
-  });
+  return res
+    .status(result.status)
+    .json({ msg: result.msg, staff: result.data.staff });
 };
 
 export const deleteStaff = async (req, res) => {
-  const { id } = req.params;
+  const result = await deleteStaffService(req.params.id);
 
-  const staff = await Staff.findByIdAndDelete(id);
-
-  if (!staff) {
-    return res
-      .status(StatusCodes.NOT_FOUND)
-      .json({ msg: `No staff with id ${id}` });
+  if (result.error) {
+    return res.status(result.status).json({ msg: result.msg });
   }
-
-  res.status(StatusCodes.OK).json({ msg: "Staff deleted successfully", staff });
+  return res
+    .status(result.status)
+    .json({ msg: result.msg, staff: result.data.staff });
 };
 
 export const deleteStudent = async (req, res) => {
-  const { id } = req.params;
+  const result = await deleteStudentService(req.params.id);
 
-  const student = await Student.findByIdAndDelete(id);
-
-  if (!student) {
-    return res
-      .status(StatusCodes.NOT_FOUND)
-      .json({ msg: `No student with id ${id}` });
+  if (result.error) {
+    return res.status(result.status).json({ msg: result.msg });
   }
-
-  res
-    .status(StatusCodes.OK)
-    .json({ msg: "Student deleted successfully", student });
+  return res
+    .status(result.status)
+    .json({ msg: result.msg, student: result.data.student });
 };
 
 export const getSingleStudent = async (req, res) => {
-  const { id } = req.params;
+  const result = await getSingleStudentService(req.params.id);
 
-  const student = await Student.findById(id);
-
-  if (!student) {
-    return res.status(StatusCodes.NOT_FOUND).json({ msg: "Student not found" });
+  if (result.error) {
+    return res.status(result.status).json({ msg: result.msg });
   }
-
-  res.status(StatusCodes.OK).json({ student });
+  return res.status(result.status).json({ student: result.data.student });
 };
 
 export const getSingleStaff = async (req, res) => {
-  const { id } = req.params;
+  const result = await getSingleStaffService(req.params.id);
 
-  const staff = await Staff.findById(id);
-
-  if (!staff) {
-    return res.status(StatusCodes.NOT_FOUND).json({ msg: "Staff not found" });
+  if (result.error) {
+    return res.status(result.status).json({ msg: result.msg });
   }
-
-  res.status(StatusCodes.OK).json({ staff });
+  return res.status(result.status).json({ staff: result.data.staff });
 };
 
 export const approveEditDetailsRequest = async (req, res) => {
-  const { id } = req.params;
+  const result = await approveEditDetailsRequestService(req.params.id);
 
-  const editDetailsRequest = await EditDetailsRequest.findById(id);
-
-  if (!editDetailsRequest || editDetailsRequest.status !== "pending") {
-    return res.status(StatusCodes.NOT_FOUND).json({
-      msg: "No pending edit details request found",
-    });
+  if (result.error) {
+    return res.status(result.status).json({ msg: result.msg });
   }
-
-  const student = await Student.findById(editDetailsRequest.requestedBy);
-
-  if (!student) {
-    return res.status(StatusCodes.NOT_FOUND).json({
-      msg: "Student not found",
-    });
-  }
-
-  student.indexNumber =
-    editDetailsRequest.newIndexNumber || student.indexNumber;
-
-  student.departmentCode =
-    editDetailsRequest.newDepartmentCode || student.departmentCode;
-
-  student.program = editDetailsRequest.newProgram || student.program;
-
-  student.level = editDetailsRequest.newLevel || student.level;
-
-  await student.save();
-
-  editDetailsRequest.status = "approved";
-  editDetailsRequest.reviewedAt = new Date();
-
-  await editDetailsRequest.save();
-
-  res.status(StatusCodes.OK).json({
-    msg: "Edit details request approved successfully",
-    student,
-  });
+  return res
+    .status(result.status)
+    .json({ msg: result.msg, student: result.data.student });
 };
 
 export const getAllEditDetailsRequests = async (req, res) => {
-  const { status } = req.query;
+  const result = await getAllEditDetailsRequestsService(req.query);
 
-  const queryObject = {};
-
-  if (status) {
-    queryObject.status = status;
+  if (result.error) {
+    return res.status(result.status).json({ msg: result.msg });
   }
-
-  const requests = await EditDetailsRequest.find(queryObject);
-
-
-  res.status(StatusCodes.OK).json({ totalRequests: requests.length, requests });
+  return res.status(result.status).json(result.data);
 };
 
 export const getSingleEditRequest = async (req, res) => {
-  const { id } = req.params;
+  const result = await getSingleEditRequestService(req.params.id);
 
-  const editRequest = await EditDetailsRequest.findById(id);
-
-  if (!editRequest) {
-    return res
-      .status(StatusCodes.NOT_FOUND)
-      .json({ msg: "Edit request not found" });
+  if (result.error) {
+    return res.status(result.status).json({ msg: result.msg });
   }
-
-  res.status(StatusCodes.OK).json({ editRequest });
+  return res
+    .status(result.status)
+    .json({ editRequest: result.data.editRequest });
 };

@@ -1,267 +1,83 @@
-import dayjs from "dayjs";
-import Exam from "../models/examsModel.js";
-import { StatusCodes } from "http-status-codes";
+import {
+  getAllExamsService,
+  createExamService,
+  getAllPostedExamsService,
+  getSingleExamService,
+  updatePostedExamService,
+  deletePostedExamService,
+} from "../services/exams/examsService.js";
 
 export const getAllExams = async (req, res) => {
-  const { departmentCode, program, level, indexNumber } = req.user;
-  const { search, examStatus, examType } = req.query;
+  const result = await getAllExamsService(req.user, req.query);
 
-  const now = dayjs();
-
-  const queryObject = {
-    departmentCode,
-    program,
-    level,
-    roomAllocations: {
-      $elemMatch: {
-        startIndexNumber: { $lte: indexNumber },
-        endIndexNumber: { $gte: indexNumber },
-      },
-    },
-  };
-
-  if (search) {
-    queryObject.$or = [
-      { courseCode: { $regex: search, $options: "i" } },
-      { courseTitle: { $regex: search, $options: "i" } },
-    ];
+  if (result.error) {
+    return res.status(result.status).json({ msg: result.msg });
   }
 
-  if (examType) {
-    queryObject.examType = examType;
-  }
-
-  const view = req.query.view || "all";
-
-  if (view === "today") {
-    queryObject.startDate = {
-      $gte: now.startOf("day").toDate(),
-      $lte: now.endOf("day").toDate(),
-    };
-  }
-
-  let exams = await Exam.find(queryObject).sort("startDate startTime");
-
-  const formattedExams = exams
-    .map((exam) => {
-      const allocation = exam.roomAllocations.find(
-        (room) =>
-          indexNumber >= room.startIndexNumber &&
-          indexNumber <= room.endIndexNumber,
-      );
-
-      const examDate = dayjs(exam.startDate).format("YYYY-MM-DD");
-      const examStart = dayjs(`${examDate} ${exam.startTime}`);
-      const examEnd = dayjs(`${examDate} ${exam.endTime}`);
-
-      let computedStatus = "upcoming";
-
-      if (now.isBefore(examStart)) {
-        computedStatus = "upcoming";
-      } else if (now.isBefore(examEnd)) {
-        computedStatus = "ongoing";
-      } else {
-        computedStatus = "completed";
-      }
-
-      return {
-        examId: exam._id,
-        courseCode: exam.courseCode,
-        courseTitle: exam.courseTitle,
-        program: exam.program,
-        roomAllocated: allocation ? allocation.roomAllocated : "not assigned",
-        roomLocation: allocation ? allocation.roomLocation : "not assigned",
-        startDate: exam.startDate,
-        startTime: exam.startTime,
-        endTime: exam.endTime,
-        examType: exam.examType,
-        examStatus: computedStatus,
-      };
-    })
-    .filter((exam) => (examStatus ? exam.examStatus === examStatus : true));
-
-  const numOfPapers = formattedExams.length;
-
-  const stats = {
-    upcoming: 0,
-    ongoing: 0,
-    completed: 0,
-  };
-
-  formattedExams.forEach((exam) => {
-    stats[exam.examStatus]++;
-  });
-
-  return res
-    .status(StatusCodes.OK)
-    .json({ numOfPapers, stats, exams: formattedExams });
+  return res.status(result.status).json(result.data);
 };
 
 export const createExam = async (req, res) => {
-  const courseCodeExists = await Exam.findOne({
-    courseCode: req.body.courseCode,
-  });
+  const result = await createExamService(req.body, req.user.userId);
 
-  if (courseCodeExists) {
-    return res.status(StatusCodes.BAD_REQUEST).json({
-      msg: `An exam with course code ${req.body.courseCode} already exists for program ${courseCodeExists.program} and level ${courseCodeExists.level}`,
-    });
+  if (result.error) {
+    return res.status(result.status).json({ msg: result.msg });
   }
 
-  const now = dayjs();
-
-  const examDate = dayjs(req.body.startDate).format("YYYY-MM-DD");
-  const examStart = dayjs(`${examDate} ${req.body.startTime}`);
-  const examEnd = dayjs(`${examDate} ${req.body.endTime}`);
-
-  let computedStatus = "upcoming";
-
-  if (now.isBefore(examStart)) {
-    computedStatus = "upcoming";
-  } else if (now.isBefore(examEnd)) {
-    computedStatus = "ongoing";
-  } else {
-    computedStatus = "completed";
-  }
-
-  const examData = {
-    ...req.body,
-    examStatus: computedStatus,
-    createdBy: req.user.userId,
-  };
-
-  const exam = await Exam.create(examData);
-
-  res.status(StatusCodes.CREATED).json({
-    msg: "Exam posted successfully",
-    exam,
-  });
+  return res
+    .status(result.status)
+    .json({ msg: result.msg, exam: result.data.exam });
 };
 
 export const getAllPostedExams = async (req, res) => {
-  const { search, view, examStatus, departmentCode, level, program, examType } =
-    req.query;
+  const result = await getAllPostedExamsService(req.user.userId, req.query);
 
-  const now = dayjs();
-
-  const queryObject = {
-    createdBy: req.user.userId,
-  };
-
-  if (search) {
-    queryObject.$or = [
-      { courseCode: { $regex: search, $options: "i" } },
-      { courseTitle: { $regex: search, $options: "i" } },
-    ];
+  if (result.error) {
+    return res.status(result.status).json({ msg: result.msg });
   }
 
-  if (departmentCode) {
-    queryObject.departmentCode = departmentCode;
+  // If there are no exams, the service returns data.msg
+  if (result.data.msg) {
+    return res.status(result.status).json({ msg: result.data.msg });
   }
 
-  if (program) {
-    queryObject.program = program;
-  }
-
-  if (level) {
-    queryObject.level = level;
-  }
-
-  if (examType) {
-    queryObject.examType = examType;
-  }
-
-  if (view === "today") {
-    queryObject.startDate = {
-      $gte: now.startOf("day").toDate(),
-      $lte: now.endOf("day").toDate(),
-    };
-  }
-
-  let exams = await Exam.find(queryObject).sort("startDate startTime");
-
-  const formattedExams = exams
-    .map((exam) => {
-      const examDate = dayjs(exam.startDate).format("YYYY-MM-DD");
-      const examStart = dayjs(`${examDate} ${exam.startTime}`);
-      const examEnd = dayjs(`${examDate} ${exam.endTime}`);
-      const completedAt = examEnd.add(1, "hour");
-
-      let computedStatus = "upcoming";
-      if (now.isAfter(examStart) && now.isBefore(examEnd))
-        computedStatus = "ongoing";
-      else if (now.isAfter(completedAt)) computedStatus = "completed";
-
-      return { ...exam.toObject(), examStatus: computedStatus };
-    })
-    .filter((exam) => (examStatus ? exam.examStatus === examStatus : true));
-
-  const numOfPapers = formattedExams.length;
-  if (numOfPapers === 0) {
-    return res.status(StatusCodes.OK).json({ msg: "No exams found" });
-  }
-
-  const stats = {
-    upcoming: 0,
-    ongoing: 0,
-    completed: 0,
-  };
-
-  formattedExams.forEach((exam) => {
-    stats[exam.examStatus]++;
-  });
-
-  return res
-    .status(StatusCodes.OK)
-    .json({ numOfPapers, stats, exams: formattedExams });
+  return res.status(result.status).json(result.data);
 };
 
 export const getSingleExam = async (req, res) => {
-  const { id } = req.params;
+  const result = await getSingleExamService(req.params.id);
 
-  const exam = await Exam.findById(id);
-
-  if (!exam) {
-    return res.status(StatusCodes.NOT_FOUND).json({ msg: "Item not found" });
+  if (result.error) {
+    return res.status(result.status).json({ msg: result.msg });
   }
 
-  res.status(StatusCodes.OK).json({ exam });
+  return res.status(result.status).json({ exam: result.data.exam });
 };
 
 export const updatePostedExam = async (req, res) => {
-  const { id } = req.params;
+  const result = await updatePostedExamService(
+    req.params.id,
+    req.user.userId,
+    req.body,
+  );
 
-  const exam = await Exam.findOne({
-    _id: id,
-    createdBy: req.user.userId,
-  });
-
-  if (!exam) {
-    return res.status(StatusCodes.NOT_FOUND).json({
-      msg: "Exam not found",
-    });
+  if (result.error) {
+    return res.status(result.status).json({ msg: result.msg });
   }
 
-  const updatedExam = await Exam.findByIdAndUpdate(id, req.body, {
-    new: true,
-    runValidators: true,
-  });
-
-  res
-    .status(StatusCodes.OK)
-    .json({ msg: "Exam updated successfully", exam: updatedExam });
+  return res
+    .status(result.status)
+    .json({ msg: result.msg, exam: result.data.exam });
 };
 
 export const deletePostedExam = async (req, res) => {
-  const { id } = req.params;
+  const result = await deletePostedExamService(req.params.id);
 
-  const exam = await Exam.findByIdAndDelete(id);
-
-  if (!exam) {
-    return res
-      .status(StatusCodes.NOT_FOUND)
-      .json({ msg: `No exam with id ${id}` });
+  if (result.error) {
+    return res.status(result.status).json({ msg: result.msg });
   }
 
-  res.status(StatusCodes.OK).json({ msg: "exam deleted successfully", exam });
+  return res
+    .status(result.status)
+    .json({ msg: result.msg, exam: result.data.exam });
 };

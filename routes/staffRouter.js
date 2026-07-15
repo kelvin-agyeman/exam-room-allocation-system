@@ -8,21 +8,21 @@ import {
   deletePostedExam,
 } from "../controllers/examsController.js";
 import {
+  validate,
   validateIdParam,
-  validateExamInput,
-  validateUpdateExamInput,
 } from "../middleware/validationMiddleware.js";
+import { examSchema, updateExamSchema } from "../validators/examsValidator.js";
 const router = Router();
 
 router.route("/current").get(getCurrentStaff);
 router
   .route("/exams")
   .get(getAllPostedExams)
-  .post(validateExamInput, createExam);
+  .post(validate(examSchema), createExam);
 router
   .route("/exams/:id")
   .get(validateIdParam, getSingleExam)
-  .patch(validateIdParam, validateUpdateExamInput, updatePostedExam)
+  .patch(validateIdParam, validate(updateExamSchema), updatePostedExam)
   .delete(validateIdParam, deletePostedExam);
 
 export default router;

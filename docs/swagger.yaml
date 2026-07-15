@@ -1,0 +1,690 @@
+openapi: 3.0.0
+info:
+  title: Exam Room Allocation System API
+  version: 1.0.0
+  description: "Production-ready RESTful API for automated exam scheduling, room allocation, and personalized examination venue lookup within academic institutions."
+  contact:
+    name: API Support
+servers:
+  - url: "http://localhost:5000"
+    description: Development Server
+
+security:
+  - cookieAuth: []
+
+paths:
+  /auth/register:
+    post:
+      summary: Register Student
+      tags: [Auth - Student]
+      security: [] # Public route
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterStudentRequest"
+      responses:
+        "201":
+          description: Student registered successfully
+        "400":
+          description: Validation error or student already exists
+
+  /auth/login:
+    post:
+      summary: Login Student
+      tags: [Auth - Student]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginStudentRequest"
+      responses:
+        "200":
+          description: Student logged in successfully
+
+  /auth/logout:
+    get:
+      summary: Logout Student
+      description: Invalidate student session. (Note - Standard REST prefers POST for logouts, but keeping GET to match existing router).
+      tags: [Auth - Student]
+      responses:
+        "200":
+          description: Student logged out successfully
+
+  /auth/staff/register:
+    post:
+      summary: Register Staff
+      tags: [Auth - Staff]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterStaffRequest"
+      responses:
+        "201":
+          description: Staff registered successfully
+
+  /auth/staff/login:
+    post:
+      summary: Login Staff
+      tags: [Auth - Staff]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginStaffRequest"
+      responses:
+        "200":
+          description: Staff logged in successfully
+
+  /auth/staff/logout:
+    get:
+      summary: Logout Staff
+      tags: [Auth - Staff]
+      responses:
+        "200":
+          description: Staff logged out successfully
+
+  /auth/admin/register:
+    post:
+      summary: Register Admin
+      tags: [Auth - Admin]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterAdminRequest"
+      responses:
+        "201":
+          description: Admin registered successfully
+
+  /auth/admin/login:
+    post:
+      summary: Login Admin
+      tags: [Auth - Admin]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginAdminRequest"
+      responses:
+        "200":
+          description: Admin logged in successfully
+
+  /auth/admin/logout:
+    get:
+      summary: Logout Admin
+      tags: [Auth - Admin]
+      responses:
+        "200":
+          description: Admin logged out successfully
+
+  /auth/forgot-password:
+    post:
+      summary: Forgot Password
+      tags: [Auth - Password Management]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ForgotPasswordRequest"
+      responses:
+        "200":
+          description: Password reset link sent to email
+
+  /auth/reset-password:
+    post:
+      summary: Reset Password
+      tags: [Auth - Password Management]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetPasswordRequest"
+      responses:
+        "200":
+          description: Password successfully reset
+
+  # ==========================================
+  # PUBLIC / SHARED EXAM ROUTES
+  # ==========================================
+  /exams:
+    get:
+      summary: Get All Exams
+      tags: [Exams]
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Page number for pagination
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Number of items per page
+      responses:
+        "200":
+          description: List of scheduled exams retrieved successfully
+
+  # ==========================================
+  # STUDENT ROUTES
+  # ==========================================
+  /student/current:
+    get:
+      summary: Get Current Student Profile
+      tags: [Student Profile]
+      responses:
+        "200":
+          description: Student profile retrieved successfully
+
+  /student/update-student:
+    patch:
+      summary: Update Student Profile
+      tags: [Student Profile]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateStudentRequest"
+      responses:
+        "200":
+          description: Student profile updated successfully
+
+  /student/request-edit:
+    post:
+      summary: Send Edit Details Request
+      description: Allows a student to request a change in their details (e.g., advancing to the next level).
+      tags: [Student Profile]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EditDetailsRequest"
+      responses:
+        "201":
+          description: Edit request submitted for admin approval
+
+  # ==========================================
+  # STAFF ROUTES
+  # ==========================================
+  /staff/current:
+    get:
+      summary: Get Current Staff Profile
+      tags: [Staff Dashboard]
+      responses:
+        "200":
+          description: Staff profile retrieved successfully
+
+  /staff/exams:
+    get:
+      summary: Get All Posted Exams (Staff)
+      tags: [Staff Dashboard]
+      responses:
+        "200":
+          description: List of exams posted by the current staff member
+    post:
+      summary: Create Exam Room Allocation
+      tags: [Staff Dashboard]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateExamRequest"
+      responses:
+        "201":
+          description: Exam created and allocated successfully
+
+  /staff/exams/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        description: Unique Exam ID
+    get:
+      summary: Get Single Exam
+      tags: [Staff Dashboard]
+      responses:
+        "200":
+          description: Exam details retrieved successfully
+        "404":
+          description: Exam not found
+    patch:
+      summary: Update Posted Exam
+      tags: [Staff Dashboard]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateExamRequest"
+      responses:
+        "200":
+          description: Exam updated successfully
+    delete:
+      summary: Delete Posted Exam
+      tags: [Staff Dashboard]
+      responses:
+        "200":
+          description: Exam deleted successfully
+
+  # ==========================================
+  # ADMIN ROUTES
+  # ==========================================
+  /admin/current:
+    get:
+      summary: Get Current Admin
+      tags: [Admin Dashboard]
+      responses:
+        "200":
+          description: Admin profile retrieved successfully
+
+  /admin/all-students:
+    get:
+      summary: Get All Students
+      tags: [Admin - Users]
+      responses:
+        "200":
+          description: List of all students retrieved
+
+  /admin/student/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        description: Unique Student ID
+    get:
+      summary: Get Single Student
+      tags: [Admin - Users]
+      responses:
+        "200":
+          description: Student details retrieved
+        "404":
+          description: Student not found
+    delete:
+      summary: Delete Student
+      tags: [Admin - Users]
+      responses:
+        "200":
+          description: Student deleted successfully
+
+  /admin/all-staff:
+    get:
+      summary: Get All Staff
+      tags: [Admin - Users]
+      responses:
+        "200":
+          description: List of all staff retrieved
+
+  /admin/staff/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        description: Unique Staff ID
+    get:
+      summary: Get Single Staff Member
+      tags: [Admin - Users]
+      responses:
+        "200":
+          description: Staff details retrieved
+        "404":
+          description: Staff not found
+    patch:
+      summary: Update Staff Member
+      tags: [Admin - Users]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateStaffRequest"
+      responses:
+        "200":
+          description: Staff details updated successfully
+    delete:
+      summary: Delete Staff Member
+      tags: [Admin - Users]
+      responses:
+        "200":
+          description: Staff deleted successfully
+
+  /admin/edit-requests:
+    get:
+      summary: Get All Edit Requests
+      tags: [Admin - Requests]
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [pending, approved, rejected]
+          example: pending
+      responses:
+        "200":
+          description: Edit requests retrieved
+
+  /admin/edit-requests/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        description: Unique Request ID
+    get:
+      summary: Get Single Edit Request
+      tags: [Admin - Requests]
+      responses:
+        "200":
+          description: Request details retrieved
+        "404":
+          description: Request not found
+
+  /admin/edit-requests/approve/{id}:
+    patch:
+      summary: Approve Edit Request
+      tags: [Admin - Requests]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Unique Request ID
+      responses:
+        "200":
+          description: Edit request approved successfully
+
+components:
+  schemas:
+    # --- Student Auth Schemas ---
+    RegisterStudentRequest:
+      type: object
+      required:
+        - firstName
+        - lastName
+        - email
+        - indexNumber
+        - departmentCode
+        - level
+        - program
+        - password
+      properties:
+        firstName:
+          type: string
+          example: Vin
+        lastName:
+          type: string
+          example: Agyeman
+        email:
+          type: string
+          format: email
+          example: kelvinagyeman11@gmail.com
+        indexNumber:
+          type: integer
+          example: 8821234
+        departmentCode:
+          type: string
+          example: "086"
+        level:
+          type: integer
+          example: 200
+        program:
+          type: string
+          example: BSc. Computer Science
+        password:
+          type: string
+          format: password
+          example: Secret123!
+
+    LoginStudentRequest:
+      type: object
+      required:
+        - indexNumber
+        - password
+      properties:
+        indexNumber:
+          type: integer
+          example: 8821234
+        password:
+          type: string
+          format: password
+          example: Secret123!
+
+    # --- Staff Auth Schemas ---
+    RegisterStaffRequest:
+      type: object
+      required:
+        - fullName
+        - staffID
+        - password
+      properties:
+        fullName:
+          type: string
+          example: Dr. Nana Owusu
+        staffID:
+          type: string
+          example: a11B223K82
+        password:
+          type: string
+          format: password
+          example: Secret123!
+
+    LoginStaffRequest:
+      type: object
+      required:
+        - staffID
+        - password
+      properties:
+        staffID:
+          type: string
+          example: a11B223K82
+        password:
+          type: string
+          format: password
+          example: Secret123!
+
+    # --- Admin Auth Schemas ---
+    RegisterAdminRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          example: Trial Admin
+        password:
+          type: string
+          format: password
+          example: "@Trial123"
+
+    LoginAdminRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          example: kelvin
+        password:
+          type: string
+          format: password
+          example: Secret123!
+
+    # --- Password Reset Schemas ---
+    ForgotPasswordRequest:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
+          example: kelvinagyeman11@gmail.com
+
+    ResetPasswordRequest:
+      type: object
+      required:
+        - token
+        - email
+        - password
+      properties:
+        token:
+          type: string
+          example: 3a992fefe6c50c2d6a59dd64...
+        email:
+          type: string
+          format: email
+          example: michael.boateng3360@gmail.com
+        password:
+          type: string
+          format: password
+          example: Secret124!
+
+    # --- Student Ops Schemas ---
+    UpdateStudentRequest:
+      type: object
+      properties:
+        lastName:
+          type: string
+          example: Opoku
+        email:
+          type: string
+          format: email
+          example: michael.opoku3360@gmail.com
+
+    EditDetailsRequest:
+      type: object
+      required:
+        - newLevel
+        - reason
+      properties:
+        newLevel:
+          type: integer
+          example: 300
+        reason:
+          type: string
+          example: just advanced
+
+    # --- Staff Ops Schemas ---
+    UpdateStaffRequest:
+      type: object
+      properties:
+        staffID:
+          type: string
+          example: aaabbbccc123
+
+    # --- Exam Management Schemas ---
+    RoomAllocation:
+      type: object
+      required:
+        - startIndexNumber
+        - endIndexNumber
+        - roomAllocated
+        - roomLocation
+      properties:
+        startIndexNumber:
+          type: integer
+          example: 1885922
+        endIndexNumber:
+          type: integer
+          example: 3395322
+        roomAllocated:
+          type: string
+          example: TF-34
+        roomLocation:
+          type: string
+          example: College of Science
+
+    CreateExamRequest:
+      type: object
+      required:
+        - courseCode
+        - courseTitle
+        - departmentCode
+        - program
+        - level
+        - startDate
+        - startTime
+        - endTime
+        - examType
+        - roomAllocations
+      properties:
+        courseCode:
+          type: string
+          example: CSM 276
+        courseTitle:
+          type: string
+          example: Introduction to AI
+        departmentCode:
+          type: string
+          example: "086"
+        program:
+          type: string
+          example: BSc. Computer Science
+        level:
+          type: integer
+          example: 200
+        startDate:
+          type: string
+          format: date
+          example: "2026-03-25"
+        startTime:
+          type: string
+          example: "08:00"
+        endTime:
+          type: string
+          example: "09:00"
+        examType:
+          type: string
+          example: written
+        roomAllocations:
+          type: array
+          items:
+            $ref: "#/components/schemas/RoomAllocation"
+
+    UpdateExamRequest:
+      type: object
+      properties:
+        startTime:
+          type: string
+          example: "11:15"
+        endTime:
+          type: string
+          example: "13:15"
+
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: token
