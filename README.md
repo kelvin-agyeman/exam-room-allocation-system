@@ -122,7 +122,7 @@ Before running the project locally, ensure the following software is installed:
 ### Clone the repository
 
 ```bash
-git clone https://github.com/your-username/exam-room-allocation-system.git
+git clone https://github.com/kelvin-agyeman/exam-room-allocation-system.git
 ```
 
 ### Navigate into the project directory
@@ -184,7 +184,7 @@ http://localhost:5000/api-docs
 ### Production
 
 ```text
-https://your-domain.com/api-docs
+https://exam-room-allocation.onrender.com/api-docs
 ```
 
 The documentation includes:
