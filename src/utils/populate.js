@@ -1,14 +1,14 @@
 import { readFile } from "fs/promises";
-import { connectDB } from "./db/connect.js";
+import { connectDB } from "../db/connect.js";
 import dotenv from "dotenv";
 dotenv.config();
 
-import Student from "./models/studentModel.js";
+import Student from "../models/studentModel.js";
 try {
   await connectDB(process.env.MONGO_URL);
 
   const jsonStudents = JSON.parse(
-    await readFile(new URL("./utils/mockStudents.json", import.meta.url)),
+    await readFile(new URL("./mockStudents.json", import.meta.url)),
   );
 
   await Student.deleteMany();
