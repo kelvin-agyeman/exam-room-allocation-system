@@ -1,20 +1,28 @@
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
+import * as dotenv from "dotenv";
+dotenv.config();
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_APP_PASSWORD,
+  },
+});
 
 export const sendEmail = async ({ to, subject, html }) => {
-  const resend = new Resend(process.env.RESEND_API_KEY);
   try {
-    const { data, error } = await resend.emails.send({
-      from: "Exam Room Allocation System <onboarding@resend.dev>",
-      to: [to],
+    const info = await transporter.sendMail({
+      from: `"Exam Room Allocation System" <${process.env.GMAIL_USER}>`,
+      to,
       subject,
       html,
     });
-    if (error) {
-      return console.error({ error });
-    } else {
-      console.log(data);
-    }
+
+    console.log("Email sent successfully! Message ID:", info.messageId);
+    return info;
   } catch (error) {
-    console.error(error);
+    console.error("Email configuration exception:", error);
+    return null;
   }
 };

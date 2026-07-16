@@ -41,7 +41,7 @@ The API follows industry-standard backend development practices and provides a s
 - Express Validator request validation
 - Role-based authorization
 - Password hashing using bcrypt
-- Email delivery using Resend
+- Email delivery using Nodemailer
 - Centralized error handling middleware
 - OpenAPI 3.0 documentation with Swagger UI
 
@@ -93,7 +93,7 @@ This architecture promotes clean code, reusability, easier testing, and long-ter
 
 ### Email Service
 
-- Resend
+- Nodemailer
 
 ### API Documentation
 
@@ -162,7 +162,9 @@ JWT_SECRET=your_jwt_secret
 
 JWT_LIFETIME=1d
 
-RESEND_API_KEY=your_resend_api_key
+GMAIL_USER=your_personal_email@gmail.com
+
+GMAIL_APP_PASSWORD=your_google_app_password
 
 CLIENT_URL=http://localhost:5173
 ```
