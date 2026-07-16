@@ -4,7 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import customFetch from "../../utils/customFetch";
 import { toast } from "react-toastify";
-import { LEVELS, PROGRAMS } from "../../../../utils/constants";
+import { LEVELS, PROGRAMS } from "../../../../src/utils/constants";
 
 export const Route = {
   component: StudSignupPage,

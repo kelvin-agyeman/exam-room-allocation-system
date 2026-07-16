@@ -15,7 +15,7 @@ import {
 import { redirect, useLoaderData, useNavigate } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
 import customFetch from "../../utils/customFetch";
-import { LEVELS, PROGRAMS } from "../../../../utils/constants";
+import { LEVELS, PROGRAMS } from "../../../../src/utils/constants";
 import { toast } from "react-toastify";
 
 export const loader = async () => {

@@ -4,7 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import customFetch from "../../utils/customFetch";
 import { toast } from "react-toastify";
-import { PROGRAMS, LEVELS } from "../../../../utils/constants";
+import { PROGRAMS, LEVELS } from "../../../../src/utils/constants";
 
 export const Route = {
   component: AssignNewExamPage,
