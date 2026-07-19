@@ -6,7 +6,7 @@ info:
   contact:
     name: API Support
 servers:
-  - url: "http://localhost:5000"
+  - url: "http://localhost:5000/api/v1"
     description: Development Server
 
 security:
@@ -473,11 +473,11 @@ components:
       properties:
         indexNumber:
           type: integer
-          example: 8821234
+          example: 1234567
         password:
           type: string
           format: password
-          example: Secret123!
+          example: Secret124!
 
     # --- Staff Auth Schemas ---
     RegisterStaffRequest:
