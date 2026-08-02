@@ -35,9 +35,9 @@ import path from "path";
 import YAML from "yamljs";
 import swaggerUI from "swagger-ui-express";
 
-const swaggerDocument = YAML.load("./src/docs/swagger.yaml");
-
 const __dirname = dirname(fileURLToPath(import.meta.url));
+
+const swaggerDocument = YAML.load(path.join(__dirname, "docs", "swagger.yaml"));
 
 app.use(express.static(path.resolve(__dirname, "../../client/dist")));
 
@@ -55,8 +55,11 @@ app.use("/api/v1/exams", examsRouter);
 app.use("/api/v1/student", authenticateStudent, studentRouter);
 app.use("/api/v1/staff", authenticateStaff, staffRouter);
 app.use("/api/v1/admin", authenticateAdmin, adminRouter);
+
+// Initialize Swagger UI
 app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerDocument));
 
+// Catch-all route to serve the React/Vite frontend for non-API requests
 app.use((req, res, next) => {
   if (req.path.startsWith("/api")) return next();
   res.sendFile(path.resolve(__dirname, "../../client/dist", "index.html"));
