@@ -7,18 +7,13 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node src/server",
-    "setup-project": "npm i && cd client && npm i",
-    "setup-production-app": "npm i && cd client && npm i && npm run build",
-    "server": "nodemon src/server",
-    "client": "cd client && npm run dev",
-    "dev": "concurrently --kill-others-on-fail \" npm run server\" \" npm run client\""
+    "dev": "nodemon src/server"
   },
   "keywords": [],
   "author": "Kelvin Oppong Agyeman <kelvinagyeman11@gmail.com> (https://github.com/kelvin-agyeman)",
   "license": "MIT",
   "dependencies": {
     "bcryptjs": "^3.0.3",
-    "concurrently": "^9.2.1",
     "cookie-parser": "^1.4.7",
     "crypto": "^1.0.1",
     "dayjs": "^1.11.19",

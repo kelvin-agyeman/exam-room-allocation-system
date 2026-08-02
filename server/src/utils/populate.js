@@ -1,5 +1,5 @@
 import { readFile } from "fs/promises";
-import { connectDB } from "../db/connect.js";
+import { connectDB } from "../config/dbConfig.js";
 import dotenv from "dotenv";
 dotenv.config();
 

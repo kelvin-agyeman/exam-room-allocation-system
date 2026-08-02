@@ -3,7 +3,7 @@ dotenv.config();
 import express from "express";
 const app = express();
 import morgan from "morgan";
-import { connectDB } from "./db/connect.js";
+import { connectDB } from "./config/dbConfig.js";
 
 //router imports
 import examsRouter from "./routes/examsRouter.js";
@@ -39,7 +39,7 @@ const swaggerDocument = YAML.load("./src/docs/swagger.yaml");
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-app.use(express.static(path.resolve(__dirname, "../client/dist")));
+app.use(express.static(path.resolve(__dirname, "../../client/dist")));
 
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
@@ -59,7 +59,7 @@ app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerDocument));
 
 app.use((req, res, next) => {
   if (req.path.startsWith("/api")) return next();
-  res.sendFile(path.resolve(__dirname, "../client/dist", "index.html"));
+  res.sendFile(path.resolve(__dirname, "../../client/dist", "index.html"));
 });
 
 app.use(notFound);

@@ -21,7 +21,7 @@ import {
   Link,
 } from "@tanstack/react-router";
 import dayjs from "dayjs";
-import { EXAM_STATUS } from "../../../../src/utils/constants";
+import { EXAM_STATUS } from "../../../../server/src/utils/constants";
 
 export const loader = async () => {
   try {
