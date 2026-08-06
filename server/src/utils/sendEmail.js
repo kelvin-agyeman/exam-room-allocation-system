@@ -1,26 +1,36 @@
-import nodemailer from "nodemailer";
-import * as dotenv from "dotenv";
-dotenv.config();
-
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_APP_PASSWORD,
-  },
-});
-
-export const sendEmail = async ({ to, subject, html }) => {
+export const sendEmail = async ({
+  to,
+  subject,
+  html,
+})=> {
   try {
-    const info = await transporter.sendMail({
-      from: `"Exam Room Allocation System" <${process.env.GMAIL_USER}>`,
-      to,
-      subject,
-      html,
+    const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "api-key": process.env.BREVO_API_KEY,
+      },
+      body: JSON.stringify({
+        sender: {
+          name: "Exam Room Allocation System",
+          email: process.env.BREVO_SENDER_EMAIL, 
+        },
+        to: [{ email: to }],
+        subject: subject,
+        htmlContent: html,
+      }),
     });
 
-    console.log("Email sent successfully! Message ID:", info.messageId);
-    return info;
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`Brevo API Error: ${JSON.stringify(errorData)}`);
+    }
+
+    const data = await response.json();
+    console.log("Email sent successfully! Message ID:", data.messageId);
+    return data;
+    
   } catch (error) {
     console.error("Email configuration exception:", error);
     return null;

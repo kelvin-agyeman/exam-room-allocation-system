@@ -41,7 +41,7 @@ The API follows industry-standard backend development practices and provides a s
 - Express Validator request validation
 - Role-based authorization
 - Password hashing using bcrypt
-- Email delivery using Nodemailer
+- Email delivery using Brevo
 - Centralized error handling middleware
 - OpenAPI 3.0 documentation with Swagger UI
 
@@ -93,7 +93,7 @@ This architecture promotes clean code, reusability, easier testing, and long-ter
 
 ### Email Service
 
-- Nodemailer
+- Brevo
 
 ### API Documentation
 
