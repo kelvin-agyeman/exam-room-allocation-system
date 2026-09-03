@@ -102,7 +102,9 @@ This architecture promotes clean code, reusability, easier testing, and long-ter
 
 ### Deployment
 
-- Render
+The frontend was deployed on Vercel
+
+The backend was deploed on Render
 
 ---
 

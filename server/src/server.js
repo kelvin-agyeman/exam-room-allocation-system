@@ -26,6 +26,7 @@ import {
 
 // security imports
 import helmet from "helmet";
+import cors from "cors";
 
 //path imports
 import { dirname } from "path";
@@ -39,7 +40,6 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const swaggerDocument = YAML.load(path.join(__dirname, "docs", "swagger.yaml"));
 
-app.use(express.static(path.resolve(__dirname, "../../client/dist")));
 
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
@@ -50,6 +50,13 @@ app.use(express.json());
 app.use(helmet());
 app.set("trust proxy", 1);
 
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL,
+    credentials: true,
+  }),
+);
+
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/exams", examsRouter);
 app.use("/api/v1/student", authenticateStudent, studentRouter);
@@ -58,12 +65,6 @@ app.use("/api/v1/admin", authenticateAdmin, adminRouter);
 
 // Initialize Swagger UI
 app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerDocument));
-
-// Catch-all route to serve the React/Vite frontend for non-API requests
-app.use((req, res, next) => {
-  if (req.path.startsWith("/api")) return next();
-  res.sendFile(path.resolve(__dirname, "../../client/dist", "index.html"));
-});
 
 app.use(notFound);
 app.use(errorHandlerMiddleware);

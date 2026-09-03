@@ -49,6 +49,7 @@ export const studentLogin = async (req, res) => {
     httpOnly: true,
     expires: new Date(Date.now() + oneDay),
     secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
   });
 
   res.status(result.status).json({ msg: result.msg });
@@ -66,6 +67,7 @@ export const staffLogin = async (req, res) => {
     httpOnly: true,
     expires: new Date(Date.now() + oneDay),
     secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
   });
 
   res.status(result.status).json({ msg: result.msg });
@@ -83,13 +85,14 @@ export const adminLogin = async (req, res) => {
     httpOnly: true,
     expires: new Date(Date.now() + oneDay),
     secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
   });
 
   res.status(result.status).json({ msg: result.msg });
 };
 
 export const forgotPassword = async (req, res) => {
-  const origin = process.env.CLIENT_URL || "http://localhost:5000";
+  const origin = process.env.CLIENT_URL || "http://localhost:5173";
   const result = await forgotPasswordService(req.body.email, origin);
 
   if (result.error) {
@@ -110,6 +113,8 @@ export const resetPassword = async (req, res) => {
 export const logout = (req, res) => {
   res.cookie("token", "logout", {
     httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     expires: new Date(Date.now()),
   });
   res.status(StatusCodes.OK).json({ msg: "user logged out!" });
