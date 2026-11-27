@@ -92,7 +92,15 @@ export const adminLogin = async (req, res) => {
 };
 
 export const forgotPassword = async (req, res) => {
-  const origin = process.env.CLIENT_URL || "http://localhost:5173";
+  const origin =
+    process.env.NODE_ENV === "production"
+      ? process.env.CLIENT_URL
+      : "http://localhost:5173";
+
+  if (!origin) {
+    throw new Error("CLIENT_URL is not configured");
+  }
+  
   const result = await forgotPasswordService(req.body.email, origin);
 
   if (result.error) {
